@@ -9,6 +9,7 @@ import {
   Navbar,
   Works,
   Hero,
+  Tech,
 } from "./components";
 
 const App = () => {
@@ -31,7 +32,7 @@ const App = () => {
            but eventSource={mainRef} allows 3D objects to still react to hover!
         */}
         <Canvas
-          className="!fixed inset-0 top-0 left-0 z-0 pointer-events-none"
+          className="!fixed inset-0 top-0 left-0 z-30 pointer-events-none"
           eventSource={mainRef}
           style={{ position: "fixed" }} // Safety style
         >
@@ -46,6 +47,7 @@ const App = () => {
           {/* Placeholder sections for now */}
           <div className="bg-paper">
             <About />
+            <Tech />
             <Works />
             <Experience />
             <Contact />

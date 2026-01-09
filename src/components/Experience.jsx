@@ -1,302 +1,366 @@
-// Experience.jsx — magenta HUD (matches About/Works)
-import React from "react";
-import {
-  VerticalTimeline,
-  VerticalTimelineElement,
-} from "react-vertical-timeline-component";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import "react-vertical-timeline-component/style.min.css";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { useTexture, Float, Decal, ContactShadows } from "@react-three/drei";
+import * as THREE from "three";
 
 import { styles } from "../styles";
 import { experiences } from "../constants";
 import { SectionWrapper } from "../hoc";
 
-/* =======================
-   Title FX (same as About)
-   ======================= */
-const GLYPHS = "01<>{}/\\|=+*#@$%&?";
+// --- 0. DATA CONFIGURATION ---
+const extraCard = {
+  title: "Next Chapter",
+  company_name: "Future",
+  date: "2024 - Present",
+  icon: experiences[0].icon, 
+  points: [
+    "Looking forward to new challenges and opportunities.",
+    "Ready to build scalable applications and creative 3D web experiences.",
+  ],
+};
 
-function SectionTitleStyles() {
-  return (
-    <style>{`
-/* H2 — near-white → magenta glow, subtle scanlines */
-.hud-h2{
-  --hud-r:232; --hud-g:240; --hud-b:255; /* near-white base */
-  display:inline-block; line-height:1;
-  -webkit-text-stroke:.6px rgba(var(--hud-r),var(--hud-g),var(--hud-b),.38);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.78)),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  text-shadow:
-    0 0 1px rgba(232,240,255,.50),
-    0 0 10px rgba(178,90,255,.18),
-    0 0 22px rgba(178,90,255,.06);
-  transition: background .25s, text-shadow .25s, -webkit-text-stroke-color .25s;
-}
-.hud-h2:hover{
-  --hud-r:178; --hud-g:90; --hud-b:255; /* #B25AFF */
-  text-shadow:
-    1px 0 rgba(255,0,80,.10),
-    -1px 0 rgba(0,180,255,.10),
-    0 0 12px rgba(var(--hud-r),var(--hud-g),var(--hud-b),.28),
-    0 0 2px  rgba(var(--hud-r),var(--hud-g),var(--hud-b),.85);
-}
+const allExperiences = [...experiences, extraCard];
 
-/* Magenta typed label (same as About) */
-.hud-label{
-  --hud-r:178; --hud-g:90; --hud-b:255; /* #B25AFF */
-  display:inline-block; line-height:1;
-  -webkit-text-stroke:.65px rgba(var(--hud-r),var(--hud-g),var(--hud-b),.65);
-  background:
-    linear-gradient(180deg,
-      rgba(var(--hud-r),var(--hud-g),var(--hud-b),1),
-      rgba(var(--hud-r),var(--hud-g),var(--hud-b),.88)),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  text-shadow:
-    0 0 10px rgba(var(--hud-r),var(--hud-g),var(--hud-b),.25),
-    0 0 2px  rgba(var(--hud-r),var(--hud-g),var(--hud-b),.85);
-}
+// --- 1. The Pearl String (Natural Curve + Connector Support) ---
+const PearlString = ({ startY, endY, curveScale = 1 }) => {
+  const length = Math.abs(startY - endY);
+  const distPerUnit = 0.15; 
+  const beadCount = Math.floor(length / distPerUnit);
+  const beads = [];
 
-/* Typed mask + caret */
-.type-title{ display:inline-flex; align-items:baseline; white-space:nowrap; }
-.type-inner{
-  position:relative; overflow:visible;
-  -webkit-mask: linear-gradient(#000 0 0) left/0% 100% no-repeat;
-          mask: linear-gradient(#000 0 0) left/0% 100% no-repeat;
-}
-.type-title[data-animate="true"] .type-inner{
-  animation: typingMask var(--dur,900ms) steps(var(--chars)) var(--delay,0ms) both;
-}
-.type-inner::after{
-  content:""; position:absolute; right:0; top:.06em; bottom:.06em; width:1px;
-  background:
-    linear-gradient(180deg, rgba(178,90,255,1), rgba(178,90,255,.88)),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
-  box-shadow: 0 0 .5px rgba(178,90,255,.95), 0 0 8px rgba(178,90,255,.35);
-  animation: blink 1s step-end infinite; opacity:0;
-}
-.type-title[data-animate="true"] .type-inner::after{ opacity:1; }
+  for (let i = 0; i <= beadCount; i++) {
+    const t = i / beadCount; 
+    const y = startY + (endY - startY) * t;
+    
+    // curveScale allows us to flatten the curve for the heavy end-piece
+    const xCurve = (Math.pow(Math.sin(t * Math.PI), 1.5) * 0.12 * curveScale) + (Math.sin(t * 12) * 0.01 * curveScale); 
+    const zCurve = (Math.sin(t * Math.PI) * 0.05 * curveScale) + (Math.cos(t * 20) * 0.01 * curveScale); 
+    
+    const isSpacer = i % 2 !== 0; 
 
-@keyframes typingMask{
-  from { -webkit-mask-size:0% 100%; mask-size:0% 100%; }
-  to   { -webkit-mask-size:101% 100%; mask-size:101% 100%; }
-}
-@keyframes blink { 50% { opacity:0 } }
+    if (isSpacer) {
+      beads.push(
+        <mesh key={`spacer-${i}`} position={[xCurve, y, zCurve]}>
+          <sphereGeometry args={[0.05, 16, 16]} /> 
+          <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.2} />
+        </mesh>
+      );
+    } else {
+      beads.push(
+        <mesh key={`pearl-${i}`} position={[xCurve, y, zCurve]}>
+          <sphereGeometry args={[0.11, 32, 32]} />
+          <meshPhysicalMaterial 
+            color="#FFFDD0" 
+            roughness={0.15} 
+            metalness={0.1} 
+            clearcoat={1} 
+            clearcoatRoughness={0.1} 
+            reflectivity={1} 
+          />
+        </mesh>
+      );
+    }
+  }
+  return <group>{beads}</group>;
+};
 
-@media (prefers-reduced-motion: reduce){
-  .type-title[data-animate="true"] .type-inner{ animation:none!important; -webkit-mask:none; mask:none; }
-  .type-inner::after{ animation:none!important; opacity:1; }
-}
-    `}</style>
-  );
-}
-
-function ScrambleText({ text, duration = 450, delay = 0 }) {
-  const spanRef = React.useRef(null);
-  const [out, setOut] = React.useState(() =>
-    text.split("").map(() => GLYPHS[(Math.random() * GLYPHS.length) | 0]).join("")
-  );
-  const raf = React.useRef(null);
-  const lastInView = React.useRef(false);
-
-  const play = React.useCallback(() => {
-    const prefersReduce =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (prefersReduce) { setOut(text); return; }
-
-    setOut(text.split("").map(() => GLYPHS[(Math.random() * GLYPHS.length) | 0]).join(""));
-    let startT;
-    const tick = (t) => {
-      if (!startT) startT = t;
-      const p = Math.min(1, (t - startT) / duration);
-      const reveal = Math.floor(p * text.length);
-      const next = text.split("").map((ch, i) =>
-        i < reveal ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0]
-      ).join("");
-      setOut(next);
-      if (p < 1) raf.current = requestAnimationFrame(tick);
-    };
-    const id = setTimeout(() => (raf.current = requestAnimationFrame(tick)), delay);
-    return () => clearTimeout(id);
-  }, [text, duration, delay]);
-
-  React.useEffect(() => {
-    const el = spanRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        const inView = entry.isIntersecting;
-        if (inView && !lastInView.current) play();
-        lastInView.current = inView;
-      },
-      { root: null, threshold: 0.2, rootMargin: "-10% 0px -10% 0px" }
-    );
-    io.observe(el);
-    return () => { io.disconnect(); if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [play]);
-
-  return <span ref={spanRef} aria-label={text}>{out}</span>;
-}
-
-function TypeTitle({ text, duration = 700, delay = 0, className = "" }) {
-  const chars = [...text].length;
-  const [animate, setAnimate] = React.useState(false);
-  const hostRef = React.useRef(null);
-
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const el = hostRef.current; if (!el) return;
-
-    const play = () => {
-      if (reduce) { setAnimate(false); return; }
-      setAnimate(false); void el.offsetWidth; setTimeout(() => setAnimate(true), delay);
-    };
-
-    const io = new IntersectionObserver(
-      ([entry]) => entry.isIntersecting && play(),
-      { threshold: 0.35, rootMargin: "-10% 0px -10% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [text, delay, duration]);
+// --- 2. The Interactive Flower ---
+const Flower = ({ icon, position, isHovered }) => {
+  const texture = useTexture(icon);
+  const palette = ["#F8C8DC", "#C1E1C1", "#BDE0FE", "#FDFD96", "#FFCCB0"];
+  const colorIndex = Math.floor(Math.abs(position[1] * 100)) % palette.length; 
+  const color = palette[colorIndex];
+  
+  const floatOffset = position[1] * 0.5;
 
   return (
-    <span
-      ref={hostRef}
-      className={`type-title hud-label ${className}`}
-      style={{ "--chars": chars, "--dur": `${duration}ms`, "--delay": "0ms" }}
-      data-animate={animate}
-      aria-label={text}
-    >
-      <span className="type-inner">{text}</span>
-    </span>
-  );
-}
-
-/* =======================
-   Timeline cards (magenta, square corners)
-   ======================= */
-
-const EDGE = "rgba(178,90,255,0.30)";
-const DIVIDE = "rgba(178,90,255,0.25)";
-const GLOW  = "0 0 40px rgba(178,90,255,.08)";
-const NEAR  = "rgba(232,240,255,0.92)";
-
-const ExperienceCard = ({ item }) => {
-  const showTimelineDate = false;
-
-  return (
-    <VerticalTimelineElement
-      contentStyle={{
-        background: "rgba(0,0,0,0.55)",
-        border: `1px solid ${EDGE}`,
-        boxShadow: GLOW,
-        padding: 0,
-        borderRadius: 0,              // square corners
-      }}
-      contentArrowStyle={{ borderRight: `7px solid ${EDGE}` }}
-      date={showTimelineDate ? item.date : undefined}
-      iconStyle={{
-        background: "#000",
-        boxShadow: `0 0 0 2px rgba(178,90,255,0.55), 0 0 18px rgba(178,90,255,0.35)`,
-      }}
-      icon={
-        <div className="flex items-center justify-center w-full h-full">
-          {item.icon ? (
-            <img
-              src={item.icon}
-              alt={item.company_name || item.title}
-              className="w-[60%] h-[60%] object-contain"
-            />
-          ) : (
-            <div className="w-2 h-2 rounded-full bg-[#B25AFF] shadow-[0_0_12px_rgba(178,90,255,0.8)]" />
-          )}
-        </div>
-      }
-    >
-      {/* Panel header strip (matches About panel) */}
-      <div
-        className="flex items-center gap-2 px-3 py-2 border-b text-xs"
-        style={{ borderBottomColor: DIVIDE, color: "rgba(178,90,255,0.90)" }}
+    <group position={position} scale={isHovered ? 0.30 : 0.25}> 
+      <Float 
+        speed={2} 
+        // CHANGE: Increased from 0 to 0.4. 
+        // This adds a gentle, random twist/tilt to simulate loose beads.
+        rotationIntensity={0.4} 
+        floatIntensity={0.5} 
+        floatingRange={[-0.05, 0.05]} 
+        offset={floatOffset} 
       >
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: "rgba(178,90,255,0.85)", boxShadow: "0 0 10px rgba(178,90,255,0.6)" }}
-        />
-        <span className="uppercase tracking-widest font-mono">
-          /var/education
-        </span>
-        {item.date && (
-          <span className="ml-auto font-mono uppercase text-[10px] text-[rgba(178,90,255,0.65)]">
-            {item.date}
-          </span>
-        )}
-      </div>
+        <group>
+          {/* A. PETALS */}
+          <group position={[0, 0, 0]}>
+            {[0, 72, 144, 216, 288].map((angle, i) => {
+              const rad = (angle * Math.PI) / 180;
+              const x = Math.cos(rad) * 1; 
+              const y = Math.sin(rad) * 1; 
+              return (
+                <mesh key={i} position={[x, y, 0]}>
+                  <sphereGeometry args={[0.7, 32, 32]} />
+                  <meshStandardMaterial color={color} roughness={0.2} metalness={0.1}/>
+                </mesh>
+              );
+            })}
+          </group>
 
-      {/* Body */}
-      <div className="p-4 md:p-5">
-        <h3 className="font-mono text-[rgba(232,240,255,0.98)] text-[18px] md:text-[20px] font-semibold">
-          {item.title || "Experience"}
-        </h3>
-        {(item.company_name || item.provider) && (
-          <p className="font-mono text-[13px] text-[rgba(232,240,255,0.82)]">
-            {item.company_name || item.provider}
-          </p>
-        )}
-
-        {Array.isArray(item.points) && item.points.length > 0 && (
-          <ul className="mt-4 list-disc pl-5 space-y-1">
-            {item.points.map((point, i) => (
-              <li
-                key={`exp-point-${i}`}
-                className="font-mono text-[13px] leading-6 text-[rgba(232,240,255,0.92)]"
-              >
-                {point}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </VerticalTimelineElement>
+          {/* B. FRONT CAP */}
+          <group position={[0, 0, 0.05]}>
+             <mesh rotation={[Math.PI/2, 0, 0]}>
+                 <cylinderGeometry args={[0.85, 0.85, 0.1, 32]} />
+                 <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.3} />
+             </mesh>
+             <mesh position={[0, 0, 0]}>
+                <sphereGeometry args={[0.8, 32, 32]} />
+                <meshStandardMaterial color="#FEF9E7" roughness={0.2} />
+                <Decal position={[0, 0, 0.9]} rotation={[0, 0, 0]} scale={1} map={texture} />
+             </mesh>
+          </group>
+        </group>
+      </Float>
+    </group>
   );
 };
 
+// --- 3. The End Teardrop Charm ---
+const EndDrop = ({ position }) => {
+  return (
+    <group position={position} scale={0.25}>
+        <Float 
+          speed={2} 
+          // CHANGE: Slight rotation (0.1) so it doesn't look frozen, 
+          // but less than flowers because it's heavy.
+          rotationIntensity={0.1} 
+          floatIntensity={0.5} 
+          floatingRange={[-0.05, 0.05]}
+        >
+            {/* Connector Ring */}
+            <mesh position={[0, 0.3, 0]}>
+                <torusGeometry args={[0.15, 0.04, 16, 32]} />
+                <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.2} />
+            </mesh>
+            {/* Teardrop Pearl */}
+            <mesh position={[0, -0.3, 0]} scale={[1, 1.6, 1]}>
+                <sphereGeometry args={[0.4, 32, 32]} />
+                <meshPhysicalMaterial 
+                    color="#FFFDD0" 
+                    roughness={0.15} 
+                    metalness={0.1} 
+                    clearcoat={1} 
+                    clearcoatRoughness={0.1} 
+                />
+            </mesh>
+        </Float>
+    </group>
+  )
+}
+
+// --- 4. The Rig (Physics-Based Momentum) ---
+const Rig = ({ children }) => {
+  const group = useRef();
+  const { mouse } = useThree();
+  
+  const physics = useRef({
+    velocity: 0,    
+    angle: 0,       
+    lastScroll: 0   
+  });
+
+  useFrame((state, delta) => {
+    if (!group.current) return;
+
+    // Mouse Parallax
+    const targetRotationX = -mouse.y * 0.05;
+    const targetRotationY = mouse.x * 0.05;
+    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, targetRotationX, 0.1);
+    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, targetRotationY, 0.1);
+
+    // Scroll Momentum
+    const scrollY = window.scrollY;
+    const scrollDelta = scrollY - physics.current.lastScroll;
+    physics.current.lastScroll = scrollY;
+    
+    physics.current.velocity += scrollDelta * 0.0005;
+    physics.current.velocity -= physics.current.angle * 2.0 * delta;
+    physics.current.velocity *= 0.95;
+    physics.current.angle += physics.current.velocity;
+    physics.current.angle = THREE.MathUtils.clamp(physics.current.angle, -0.3, 0.3);
+
+    group.current.rotation.z = physics.current.angle;
+    
+    // Idle Breathing
+    group.current.position.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.05 + Math.cos(state.clock.elapsedTime * 0.3) * 0.02;
+  });
+
+  return <group ref={group}>{children}</group>;
+};
+
+// --- 5. The Synced Scene ---
+const SyncedScene = ({ hoveredIndex }) => {
+  const { viewport, size } = useThree();
+  const [positions, setPositions] = useState([]);
+
+  const updatePositions = () => {
+    const container = document.getElementById("experience-container");
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const newPositions = [];
+    allExperiences.forEach((_, index) => {
+      const element = document.getElementById(`experience-marker-${index}`);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const relativeYPixel = rect.top - containerRect.top + (rect.height / 2);
+        const unitRatio = viewport.height / size.height;
+        const y3D = (viewport.height / 2) - (relativeYPixel * unitRatio);
+        newPositions.push(y3D);
+      } else {
+        newPositions.push(0);
+      }
+    });
+    setPositions(newPositions);
+  };
+
+  useEffect(() => {
+    updatePositions();
+    window.addEventListener("resize", updatePositions);
+    const timeout = setTimeout(updatePositions, 500); 
+    return () => {
+        window.removeEventListener("resize", updatePositions);
+        clearTimeout(timeout);
+    }
+  }, [viewport.height, size.height]);
+
+  return (
+    <Rig>
+      {positions.map((yPos, index) => {
+        const isLast = index === positions.length - 1;
+        
+        return (
+          <React.Fragment key={index}>
+            {/* Top Ceiling String */}
+            {index === 0 && (
+               <PearlString startY={viewport.height / 2 + 1.5} endY={yPos} />
+            )}
+
+            <Flower 
+              icon={allExperiences[index].icon} 
+              position={[0, yPos, 0.2]} 
+              isHovered={hoveredIndex === index}
+            />
+            
+            {/* Chain to Next Flower */}
+            {!isLast && positions[index + 1] !== undefined && (
+              <PearlString startY={yPos} endY={positions[index + 1]} />
+            )}
+
+            {/* END DROP: Connector + Teardrop */}
+            {isLast && (
+              <>
+                 {/* Straight connector string */}
+                 <PearlString 
+                    startY={yPos} 
+                    endY={yPos - 0.65} 
+                    curveScale={0.1} 
+                 />
+                 <EndDrop position={[0, yPos - 0.83, 0.2]} />
+              </>
+            )}
+
+          </React.Fragment>
+        );
+      })}
+    </Rig>
+  );
+};
+
+// --- 6. Main Component ---
 const Experience = () => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   return (
     <>
-      <SectionTitleStyles />
-
-      {/* Centered title block */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-      >
-        <p className={`${styles.sectionSubText} text-center`}>
-          <TypeTitle text="What I have learned so far" duration={650} delay={50} />
-        </p>
-
-        <h2 className={`${styles.sectionHeadText} text-center`}>
-          <span className="hud-h2">
-            <ScrambleText text="Education" duration={450} />
-          </span>
-        </h2>
+      <motion.div initial="hidden" whileInView="show" viewport={{ once: true }}>
+        <p className={`${styles.sectionSubText} text-center`}>My Journey</p>
+        <h2 className={`${styles.sectionHeadText} text-[#455A64] font-serif text-center mb-10`}>Work Experience</h2>
       </motion.div>
 
-      <div className="mt-16 flex flex-col">
-        <VerticalTimeline lineColor="rgba(178,90,255,0.30)">
-          {experiences.map((item, index) => (
-            <ExperienceCard key={`experience-${index}`} item={item} />
+      <div 
+        id="experience-container"
+        className="relative w-full max-w-5xl mx-auto rounded-[30px] overflow-hidden"
+        style={{ 
+          background: "linear-gradient(135deg, #E0F7FA 0%, #E1F5FE 50%, #F3E5F5 100%)",
+          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.1)" 
+        }}
+      >
+        {/* NOISE TEXTURE */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0" 
+             style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/stardust.png")` }} 
+        />
+
+        <div className="absolute top-0 left-0 bottom-0 w-[150px] z-0">
+          <Canvas camera={{ position: [0, 0, 10], fov: 30 }}>
+            <ambientLight intensity={1} />
+            <directionalLight position={[5, 5, 5]} intensity={1.5} />
+            
+            <ContactShadows 
+                position={[0, 0, -0.4]} 
+                opacity={0.4} 
+                scale={20} 
+                blur={2} 
+                far={4}
+                rotation={[Math.PI / 2, 0, 0]} 
+            />
+
+            <SyncedScene hoveredIndex={hoveredIndex} /> 
+          </Canvas>
+        </div>
+
+        <div className="flex flex-col relative z-10 py-12">
+          {allExperiences.map((experience, index) => (
+            <div 
+              key={index} 
+              className="flex items-center w-full min-h-[200px]"
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              <div className="w-[150px] flex-shrink-0 flex justify-center items-center">
+                 <div id={`experience-marker-${index}`} className="w-1 h-1 bg-transparent" />
+              </div>
+
+              <div className="flex-1 pr-10 py-4">
+                {/* UPGRADED CARD DESIGN: Clean Glass (No Gold Glow) */}
+                <div 
+                  className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-500
+                    ${hoveredIndex === index 
+                      ? "bg-white/60 border-white/80 shadow-md -translate-y-1" // Clean Lift
+                      : "bg-white/40 border-white/50 shadow-sm" // Glass Default
+                    }
+                  `}
+                >
+                  {/* Decorative Shine Overlay (Subtle) */}
+                  <div className={`absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-transparent opacity-50 pointer-events-none transition-opacity duration-500 ${hoveredIndex === index ? 'opacity-100' : 'opacity-30'}`} />
+
+                  <div className="relative z-10">
+                    <h3 className="text-[#455A64] text-[22px] font-serif font-bold tracking-wide">
+                      {experience.title}
+                    </h3>
+                    <p className="text-[#90A4AE] text-[14px] font-semibold tracking-widest uppercase mb-4 mt-1">
+                      {experience.company_name} | {experience.date}
+                    </p>
+                    <ul className="list-disc ml-4 space-y-2">
+                      {experience.points.map((point, i) => (
+                        <li key={i} className="text-[#546E7A] text-[15px] leading-6 font-medium">
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
-        </VerticalTimeline>
+        </div>
       </div>
     </>
   );
 };
 
-export default SectionWrapper(Experience, "experience");
+export default SectionWrapper(Experience, "work");
 
