@@ -1,191 +1,230 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Sparkles } from "@react-three/drei";
-import {
-  EffectComposer,
-  Bloom,
-  Noise,
-  Vignette,
-} from "@react-three/postprocessing";
-import { SectionWrapper } from "../hoc";
+import React, { useState, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Trail } from "@react-three/drei";
+import { motion } from "framer-motion";
 import * as THREE from "three";
+import { SectionWrapper } from "../hoc";
 
-// --- 1. The Interactive 3D Flower ---
-const Flower3D = ({ position, color }) => {
-  const meshRef = useRef();
-  const [hovered, setHovered] = useState(false);
+/* -------------------------------------------------------------------------- */
+/* 3D PENCIL COMPONENT                         */
+/* -------------------------------------------------------------------------- */
+const Pencil = ({ palette }) => {
+  const group = useRef();
+  const { viewport, mouse } = useThree();
+  
+  // Smooth movement state
+  const targetPos = useRef(new THREE.Vector3(0, 0, 0));
+  const currentPos = useRef(new THREE.Vector3(0, 0, 0));
+  
+  // Color cycling state for the trail
+  const [trailColor, setTrailColor] = useState(palette[0]);
+  const colorIndex = useRef(0);
+  const timeRef = useRef(0);
 
-  // Animation State Refs
-  const currentBaseScale = useRef(0.6);
+  useFrame((state, delta) => {
+    // 1. Calculate Target Position (Mouse -> World)
+    const x = (mouse.x * viewport.width) / 2;
+    const y = (mouse.y * viewport.height) / 2;
+    targetPos.current.set(x, y, 0);
 
-  const [randomData] = useState(() => ({
-    speed: 0.5 + Math.random() * 0.5, // Breathing speed
-    offset: Math.random() * 100, // Breathing time offset
-    baseRotation: (Math.random() - 0.5) * 0.01, // Idle rotation speed
-    floatSpeed: 1 + Math.random() * 0.5, // Bobbing speed
-    floatOffset: Math.random() * 100, // Bobbing time offset
-  }));
+    // 2. Smooth Lerp
+    currentPos.current.lerp(targetPos.current, 0.1);
+    
+    // 3. Apply Position
+    if (group.current) {
+      group.current.position.copy(currentPos.current);
+      
+      // 4. Dynamic Tilt
+      const tiltX = (targetPos.current.x - currentPos.current.x) * 0.5;
+      const tiltY = (targetPos.current.y - currentPos.current.y) * 0.5;
+      group.current.rotation.set(tiltY, tiltX, -0.8 + tiltX * 0.2);
+    }
 
-  useEffect(() => {
-    document.body.style.cursor = hovered ? "pointer" : "auto";
-    return () => {
-      document.body.style.cursor = "auto";
-    };
-  }, [hovered]);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    const t = state.clock.getElapsedTime();
-
-    // --- 1. ROTATION ---
-    meshRef.current.rotation.z += randomData.baseRotation;
-
-    // --- 2. SCALE ---
-    const targetScale = hovered ? 1.2 : 0.6;
-    currentBaseScale.current = THREE.MathUtils.lerp(
-      currentBaseScale.current,
-      targetScale,
-      0.1
-    );
-    const breathing = Math.sin(t * randomData.speed + randomData.offset) * 0.08;
-    const finalScale = currentBaseScale.current + breathing;
-    meshRef.current.scale.set(finalScale, finalScale, finalScale);
-
-    // --- 3. FLOAT ---
-    const floatY =
-      Math.sin(t * randomData.floatSpeed + randomData.floatOffset) * 0.2;
-    meshRef.current.position.y = position[1] + floatY;
+    // 5. Cycle Trail Colors
+    timeRef.current += delta;
+    if (timeRef.current > 0.2) {
+      timeRef.current = 0;
+      colorIndex.current = (colorIndex.current + 1) % palette.length;
+      setTrailColor(palette[colorIndex.current]);
+    }
   });
 
   return (
-    <group
-      position={[position[0], position[1], position[2]]}
-      ref={meshRef}
-      onPointerOver={() => setHovered(true)}
-      onPointerOut={() => setHovered(false)}
-    >
-      <mesh position={[0, 0, 0.2]}>
-        <sphereGeometry args={[0.35, 16, 16]} />
-        <meshStandardMaterial color="#FEF9E7" roughness={0.4} />
-      </mesh>
-      {[0, 72, 144, 216, 288].map((angle, i) => {
-        const rad = (angle * Math.PI) / 180;
-        const x = Math.cos(rad) * 0.6;
-        const y = Math.sin(rad) * 0.6;
-        return (
-          <mesh key={i} position={[x, y, 0]} rotation={[0, 0, rad]}>
-            <sphereGeometry args={[0.45, 16, 16]} />
-            <meshStandardMaterial color={color} roughness={0.5} />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-};
+    <group ref={group}>
+      {/* A. THE INK TRAIL 
+        We use an invisible mesh at (0,0,0) as the emitter.
+        Since the group follows the mouse, this trail emits from the mouse cursor.
+      */}
+      <Trail
+        width={1.5}
+        length={8}
+        color={trailColor}
+        attenuation={(t) => t * t}
+      >
+        <mesh visible={false}>
+          <boxGeometry args={[0.1, 0.1, 0.1]} />
+          <meshBasicMaterial color="white" />
+        </mesh>
+      </Trail>
 
-// --- 2. The Responsive Smart Grid Logic ---
-const FlowerField = ({ isMobile }) => {
-  const config = isMobile
-    ? { rows: 18, cols: 6, spacing: 1.6 }
-    : { rows: 12, cols: 15, spacing: 1.8 };
-
-  const flowers = useMemo(() => {
-    const temp = [];
-    const palette = ["#F8C8DC", "#C1E1C1", "#BDE0FE", "#FDFD96"];
-    const colorGrid = [];
-
-    for (let i = 0; i < config.rows; i++) {
-      const rowColors = [];
-      for (let j = 0; j < config.cols; j++) {
-        const forbidden = new Set();
-        if (j > 0) forbidden.add(rowColors[j - 1]);
-        if (i > 0) forbidden.add(colorGrid[i - 1]?.[j]);
-
-        const available = palette.filter((c) => !forbidden.has(c));
-        const picked = available[Math.floor(Math.random() * available.length)];
-
-        rowColors.push(picked);
-
-        const x = (j - config.cols / 2) * config.spacing + config.spacing / 2;
-        const y = (config.rows / 2 - i) * config.spacing - config.spacing / 2;
-
-        temp.push({
-          id: `${i}-${j}`,
-          position: [x, y, 0],
-          color: picked,
-        });
-      }
-      colorGrid.push(rowColors);
-    }
-    return temp;
-  }, [config.rows, config.cols, config.spacing]);
-
-  return (
-    <group>
-      {flowers.map((f) => (
-        <Flower3D key={f.id} position={f.position} color={f.color} />
-      ))}
-    </group>
-  );
-};
-
-// --- 3. The Main Component ---
-// --- 3. The Main Component ---
-const About = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => { setIsMobile(window.innerWidth < 768); };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  return (
-    <div className="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center">
-      
-      {/* GLASS EFFECT 1: THE BLOB BEHIND */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] -z-10 rounded-full bg-gradient-to-tr from-[#F8C8DC] via-[#BDE0FE] to-[#F8C8DC] blur-[100px] opacity-100" />
-
-      {/* GLASS EFFECT 2: THE MAIN FRAME */}
-      <div className="relative w-full h-full border-2 border-black rounded-[2rem] overflow-hidden bg-white/20 backdrop-blur-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      {/* B. THE PENCIL VISUALS 
+        Shifted UP so the tip aligns with the group origin (0,0,0).
+        Tip is roughly at -2.25 local Y, so we shift group up by +2.25.
+      */}
+      <group rotation={[0, 0, 0]} position={[0, 2.25, 0]}> 
         
-        {/* 3D Scene Layer */}
-        <div className="absolute inset-0 z-0">
-          <Canvas flat camera={{ position: [0, 0, 18], fov: isMobile ? 45 : 35 }}> 
-            <ambientLight intensity={0.8} /> 
-            <directionalLight position={[5, 10, 5]} intensity={2.0} />
-            <FlowerField isMobile={isMobile} />
-            
-            <Sparkles count={60} scale={12} size={3} speed={0.4} opacity={0.4} color="#F8C8DC" />
-            
-            <EffectComposer disableNormalPass>
-              <Bloom luminanceThreshold={0.9} mipmapBlur intensity={0.2} radius={0.4} />
-              <Noise opacity={0.015} />
-              <Vignette eskil={false} offset={0.5} darkness={0.25} />
-            </EffectComposer>
-          </Canvas>
-        </div>
+        {/* 1. Wood Cone (Tip Holder) - Rotated 180 to point DOWN */}
+        <mesh position={[0, -1.6, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.26, 0.8, 32]} />
+          <meshStandardMaterial color="#f0c2a8" />
+        </mesh>
 
-        {/* GLASS EFFECT 3: THE TEXT CARD */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto bg-white/40 backdrop-blur-md border border-white/60 p-8 rounded-xl max-w-xl text-center mx-4 shadow-sm">
-            <h2 className="font-serif text-4xl mb-6 text-gray-900">
-              About Me
-            </h2>
-            
-            <p className="font-sans text-lg text-gray-800 leading-relaxed font-medium">
-              I started in hospitality and graduated in Games Technology. Now I’m focused on my own projects—exploring UX, AI, and game-inspired interactions—with the aim of stepping into a junior software developer role. Tools I’m using: React, Three.js, JavaScript plus C#/C++ from my Games Tech degree.
-              <br /><br />
-              Tools I’m using: <strong>React</strong>, <strong>Three.js</strong>, <strong>JavaScript</strong> plus <strong>C#/C++</strong> from my Games Tech degree.
-              <br /><br />
-              <span className="text-sm text-gray-600 italic">(Hover over the flowers around me!)</span>
-            </p>
-            
-          </div>
-        </div>
+        {/* 2. Graphite Tip - Rotated 180 to point DOWN */}
+        <mesh position={[0, -2.1, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.08, 0.35, 32]} />
+          <meshStandardMaterial color="#1a1a1a" />
+        </mesh>
 
+        {/* 3. Hexagonal Body */}
+        <mesh position={[0, 0, 0]}>
+          <cylinderGeometry args={[0.26, 0.26, 2.5, 6]} />
+          <meshStandardMaterial color="#FDB813" roughness={0.3} />
+        </mesh>
+
+        {/* 4. Metal Ferrule */}
+        <mesh position={[0, 1.35, 0]}>
+          <cylinderGeometry args={[0.26, 0.26, 0.3, 32]} />
+          <meshStandardMaterial color="#a0a0a0" metalness={0.8} roughness={0.2} />
+        </mesh>
+
+        {/* 5. Eraser */}
+        <mesh position={[0, 1.6, 0]}>
+          <cylinderGeometry args={[0.26, 0.26, 0.3, 32]} />
+          <meshStandardMaterial color="#ff9999" />
+        </mesh>
+
+      </group>
+    </group>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* MAIN COMPONENT                                */
+/* -------------------------------------------------------------------------- */
+const About = () => {
+  const [triggerAnimation, setTriggerAnimation] = useState(false);
+  const palette = ["#f9561b", "#ebff36", "#1328f0", "#fa99dc", "#9267f0"];
+
+  // --- Typewriter Variants ---
+  const typingContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.04, delayChildren: 0.2 },
+    },
+  };
+
+  const typingWord = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1, y: 0,
+      transition: { type: "spring", damping: 12, stiffness: 100 },
+    },
+  };
+
+  const renderWords = (text) =>
+    text.split(" ").map((word, index) => (
+      <motion.span variants={typingWord} key={index} className="inline-block mr-[0.25em]">
+        {word}
+      </motion.span>
+    ));
+
+  return (
+    <div className="relative w-screen left-1/2 -translate-x-1/2 flex flex-col items-center justify-center overflow-hidden pb-24 sm:pb-32 rounded-t-[50px] bg-[#fdfbf7]">
+      
+      {/* 1. BACKGROUND */}
+      <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 opacity-[0.07]" 
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, #000000 1.5px, transparent 1.5px),
+              linear-gradient(to bottom, #000000 1.5px, transparent 1.5px)
+            `,
+            backgroundSize: '40px 40px'
+          }}
+        />
       </div>
+
+      {/* 2. 3D PENCIL LAYER */}
+      <div className="absolute inset-0 z-[1]">
+        <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[5, 10, 5]} intensity={1.0} />
+          <Pencil palette={palette} />
+        </Canvas>
+      </div>
+
+      {/* 3. TEXT CONTENT */}
+      <div className="relative z-10 w-full max-w-7xl px-6 flex flex-col items-center pointer-events-none">
+        
+        {/* HEADER */}
+        <motion.div
+          onViewportEnter={() => setTriggerAnimation(true)}
+          viewport={{ once: true, amount: 0.2 }}
+          className="w-full flex justify-center items-center py-20 md:py-32 mb-10"
+        >
+          <h2
+            className={`
+              font-black 
+              text-[14vw] 
+              leading-[0.9] uppercase tracking-tighter text-center 
+              pointer-events-none select-none 
+              drop-shadow-xl
+              ${triggerAnimation ? "animate-fill-fade-black" : "opacity-0"}
+            `}
+          >
+            About Me
+          </h2>
+        </motion.div>
+
+        {/* BIO TEXT */}
+        <div className="max-w-2xl text-center px-4 font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium pointer-events-auto">
+          <motion.p
+            variants={typingContainer}
+            initial="hidden"
+            animate={triggerAnimation ? "visible" : "hidden"}
+          >
+            {renderWords(
+              "I started in hospitality and graduated in Games Technology. Now I’m focused on my own projects—exploring UX, AI, and game-inspired interactions—with the aim of stepping into a junior software developer role."
+            )}
+            <br className="block my-6 content-['']" />
+            
+            {renderWords("Tools I’m using: ")}
+            <motion.span variants={typingWord} className="inline-block mr-[0.25em]"><strong>React</strong>,</motion.span>
+            <motion.span variants={typingWord} className="inline-block mr-[0.25em]"><strong>Three.js</strong>,</motion.span>
+            <motion.span variants={typingWord} className="inline-block mr-[0.25em]"><strong>JavaScript</strong></motion.span>
+            <motion.span variants={typingWord} className="inline-block mr-[0.25em]">plus</motion.span>
+            <motion.span variants={typingWord} className="inline-block mr-[0.25em]"><strong>C#/C++</strong></motion.span>
+            {renderWords("from my Games Tech degree.")}
+          </motion.p>
+        </div>
+      </div>
+
+      {/* STYLES */}
+      <style>{`
+        @keyframes fillFadeBlack {
+          0% { color: transparent; text-shadow: 0px 0px 0 transparent; opacity: 0; transform: translateY(20px); }
+          20% { opacity: 1; transform: translateY(0); }
+          50% { color: transparent; text-shadow: 0px 0px 0 transparent; }
+          100% { color: #1a1a1a; text-shadow: 4px 4px 0 #1328f0; opacity: 1; transform: translateY(0); }
+        }
+        .animate-fill-fade-black {
+          color: transparent;
+          -webkit-text-stroke: 2px #1a1a1a; 
+          animation: fillFadeBlack 1.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
