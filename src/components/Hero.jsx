@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { SectionWrapper } from "../hoc";
 
 /* -------------------------------------------
-   3D Flower (Unchanged)
+   3D Flower Component
 ------------------------------------------- */
 const Flower3D = ({
   position,
@@ -106,7 +106,7 @@ const Flower3D = ({
 };
 
 /* -------------------------------------------
-   MIX & MATCH HERO FLOWERS (Unchanged)
+   Hero Flowers Manager
 ------------------------------------------- */
 const HeroFlowers = ({ isMobile }) => {
   const activeLayout = 1; 
@@ -119,8 +119,7 @@ const HeroFlowers = ({ isMobile }) => {
       const getMobileFlower = (id, x, y, scale, colorIdx, z = 0) => {
         const color = palette[colorIdx % palette.length];
         const centerOptions = palette.filter((c) => c !== color);
-        const centerColor =
-          centerOptions[(colorIdx + 2) % centerOptions.length];
+        const centerColor = centerOptions[(colorIdx + 2) % centerOptions.length];
         return {
           id: `mob-${id}`,
           position: [x, y, z],
@@ -162,11 +161,10 @@ const HeroFlowers = ({ isMobile }) => {
         { x: 0, y: -6.2, z: 0, s: 0.6 },
         { x: -3.2, y: 4.2, z: 0, s: 0.6 },
         { x: 3.2, y: 3.8, z: 0, s: 0.6 },
-        { x: -3.5, y: -4.2, z: 0, s: 0.65 },
+        { x: 3.5, y: -4.2, z: 0, s: 0.65 },
         { x: 3.5, y: -3.8, z: 0, s: 0.65 },
         { x: 0, y: -3, z: 0, s: 0.85 },
       ],
-      // (Other layouts omitted for brevity, logic remains same)
     };
 
     const colorMaps = {
@@ -277,7 +275,7 @@ const ScrollFlowerIndicator = ({ onClick }) => {
 };
 
 /* -------------------------------------------
-   Main Hero (Updated with Fade)
+   Main Hero Section
 ------------------------------------------- */
 const Hero = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -312,7 +310,7 @@ const Hero = () => {
           <directionalLight position={[6, 10, 6]} intensity={2.0} />
 
           <HeroFlowers isMobile={isMobile} />
-
+          
           <Sparkles
             count={12}
             scale={12}
@@ -347,55 +345,30 @@ const Hero = () => {
 
       {/* 3. CONTENT */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pb-20 md:pb-24 pointer-events-none">
+        
         {/* Glow behind text */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-black/40 blur-[100px] -z-10 rounded-full pointer-events-none" />
 
-        <div
-          className="absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2
-             w-[1200px] h-[520px]
-             pointer-events-none -z-10
-             bg-black/0 backdrop-blur-[4px]"
-          style={{
-            WebkitMaskImage: `
-      radial-gradient(ellipse at center,
-        rgba(0,0,0,1) 0%,
-        rgba(0,0,0,1) 38%,
-        rgba(0,0,0,0.6) 62%,
-        rgba(0,0,0,0) 92%),
-      linear-gradient(to bottom,
-        rgba(0,0,0,1) 0%,
-        rgba(0,0,0,1) 62%,
-        rgba(0,0,0,0) 78%)
-    `,
-            WebkitMaskComposite: "source-in",
-            maskImage: `
-      radial-gradient(ellipse at center,
-        rgba(0,0,0,1) 0%,
-        rgba(0,0,0,1) 38%,
-        rgba(0,0,0,0.6) 62%,
-        rgba(0,0,0,0) 92%),
-      linear-gradient(to bottom,
-        rgba(0,0,0,1) 0%,
-        rgba(0,0,0,1) 62%,
-        rgba(0,0,0,0) 78%)
-    `,
-          }}
-        />
-
-        <div className="pointer-events-auto text-center animate-fade-up">
+        <div className="pointer-events-auto text-center">
+          
+          {/* UPDATED TITLE:
+            - animate-fill-fade class handles the "Hollow -> Solid + Shadow Pop"
+            - Removed inline text-shadow (it's handled in keyframes now)
+          */}
           <h1
             className="
+              animate-fill-fade
               font-sans font-black tracking-tighter
-              text-6xl md:text-9xl
-              text-[#F5F1E8] leading-[0.9] mb-8
+              text-[11vw] 
+              leading-[0.9] mb-8
               drop-shadow-2xl
-              [text-shadow:3px_3px_0_#1328f0]
             "
           >
             Hi, I’m Marjut
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/70 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase">
+          {/* TAGS */}
+          <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/70 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
             <span>UI/UX</span>
             <span className="w-1 h-1 rounded-full bg-white/40" />
             <span>Frontend</span>
@@ -403,7 +376,8 @@ const Hero = () => {
             <span>Creative Dev</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          {/* BUTTONS */}
+          <div className="animate-fade-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-6 opacity-0">
             <OffsetButton
               href="#contact"
               onClick={(e) => {
@@ -433,17 +407,55 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* 4. THE ABYSS GRADIENT (Transition to Works) */}
+      {/* 4. THE ABYSS GRADIENT */}
       <div 
         className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-b from-transparent to-black pointer-events-none z-[5]" 
       />
 
       <style>{`
+        /* * FIX: We animate the text-shadow alongside the color fill.
+         * 0%   -> Text is hollow, shadow is transparent (hidden).
+         * 100% -> Text is solid white, shadow is solid blue (visible).
+         * This prevents seeing the shadow "inside" the hollow glass text.
+         */
+        @keyframes fillFade {
+          0% { 
+            color: transparent; 
+            text-shadow: 0px 0px 0 transparent; /* Hidden shadow */
+            opacity: 0; 
+            transform: translateY(20px); 
+          }
+          20% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          50% {
+            color: transparent; /* Still hollow */
+            text-shadow: 0px 0px 0 transparent; /* Still hidden */
+          }
+          100% { 
+            color: #F5F1E8; 
+            text-shadow: 4px 4px 0 #1328f0; /* Shadow POPS in */
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fill-fade {
+          color: transparent;
+          -webkit-text-stroke: 2px #F5F1E8; 
+          animation: fillFade 1.6s ease-out forwards;
+        }
+
+        /* General Fade Up */
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-up { animation: fadeUp 1s ease-out forwards; }
+        
+        .animate-fade-up { animation: fadeUp 0.8s ease-out forwards; }
+        .delay-200 { animation-delay: 0.3s; }
+        .delay-300 { animation-delay: 0.5s; }
       `}</style>
     </section>
   );

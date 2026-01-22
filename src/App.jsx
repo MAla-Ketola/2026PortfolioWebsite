@@ -12,6 +12,7 @@ import {
   Tech,
 } from "./components";
 
+
 const App = () => {
   const mainRef = useRef(null);
 
@@ -21,7 +22,7 @@ const App = () => {
         ref={mainRef}
         // CHANGED: bg-paper -> bg-black. 
         // This ensures the Hero (Black) and Works (now Dark) blend seamlessly.
-        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-black text-white selection:bg-[#F8C8DC] selection:text-black"
+        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-black text-white selection:bg-[#ebff36] selection:text-black"
       >
         <Navbar />
 

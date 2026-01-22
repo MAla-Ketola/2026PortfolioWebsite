@@ -1,63 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { styles } from '../styles';
-import { navLinks } from '../constants'; // Assuming you have your links here
+import { navLinks } from '../constants';
 
 const Navbar = () => {
   const [active, setActive] = useState('');
+  const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      if (scrollTop > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(scrollTop > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    // CONTAINER: Centers the pill horizontally and fixes it to the top
-    <nav className={`fixed top-6 inset-x-0 z-50 flex justify-center transition-all duration-300 ${scrolled ? 'top-4' : 'top-6'}`}>
-      
-      {/* THE GLASS PILL */}
-      <div className={`
-        flex items-center justify-between
-        bg-white/40 backdrop-blur-md 
-        border border-white/60 
-        rounded-full 
-        px-8 py-3 
-        shadow-sm hover:shadow-md transition-all duration-300
-        min-w-[300px] md:min-w-[500px] gap-8
-      `}>
+    <nav
+      className={`
+        w-full flex items-center py-4 fixed top-0 z-50 bg-black 
+        transition-all duration-300
+      `}
+    >
+      {/* Inner Container: Matches standard section width (max-w-7xl) */}
+      <div className="w-full max-w-7xl mx-auto flex justify-between items-center px-6 sm:px-16">
         
-        {/* LOGO: Clean and minimal */}
-        <Link 
-          to="/" 
+        {/* LOGO */}
+        <Link
+          to="/"
           className="flex items-center gap-2"
           onClick={() => {
             setActive("");
             window.scrollTo(0, 0);
           }}
         >
-          {/* Using the Raspberry brand color */}
-          <p className="text-[#831843] text-[16px] font-bold cursor-pointer font-serif italic tracking-wider">
+          <p className="text-white text-[20px] font-black tracking-tighter uppercase cursor-pointer hover:text-[#ebff36] transition-colors">
             Marjut
           </p>
         </Link>
 
         {/* DESKTOP LINKS */}
-        <ul className="list-none hidden sm:flex flex-row gap-8">
+        <ul className="list-none hidden sm:flex flex-row gap-10">
           {navLinks.map((link) => (
             <li
               key={link.id}
               className={`
-                ${active === link.title ? "text-[#831843] font-bold" : "text-[#831843]/70"}
-                hover:text-[#831843] text-[14px] font-medium cursor-pointer transition-colors
+                text-[14px] font-mono font-bold uppercase tracking-widest cursor-pointer
+                ${active === link.title ? "text-[#ebff36]" : "text-white"}
+                hover:text-[#ebff36] transition-colors
               `}
               onClick={() => setActive(link.title)}
             >
@@ -66,12 +58,41 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* MOBILE MENU BUTTON (If needed) */}
-        {/* Simplified for the visual update - typical hamburger would go here */}
+        {/* MOBILE MENU TOGGLE */}
         <div className="sm:hidden flex flex-1 justify-end items-center">
-            <span className="text-[#831843] text-xl">≡</span>
-        </div>
+          <button
+            className="text-white font-mono font-bold text-sm tracking-widest uppercase hover:text-[#ebff36] transition-colors"
+            onClick={() => setToggle(!toggle)}
+          >
+            {toggle ? '[CLOSE]' : '[MENU]'}
+          </button>
 
+          {/* MOBILE MENU DROPDOWN */}
+          <div
+            className={`${
+              !toggle ? "hidden" : "flex"
+            } p-6 bg-black absolute top-full left-0 w-full z-40 shadow-2xl`}
+          >
+            <ul className="list-none flex justify-end items-start flex-1 flex-col gap-6">
+              {navLinks.map((link) => (
+                <li
+                  key={link.id}
+                  className={`
+                    font-mono font-bold cursor-pointer text-[24px] uppercase tracking-tighter w-full text-left
+                    ${active === link.title ? "text-[#ebff36]" : "text-white"}
+                    hover:text-[#ebff36] transition-colors
+                  `}
+                  onClick={() => {
+                    setToggle(!toggle);
+                    setActive(link.title);
+                  }}
+                >
+                  <a href={`#${link.id}`}>_/{link.title}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </nav>
   );
