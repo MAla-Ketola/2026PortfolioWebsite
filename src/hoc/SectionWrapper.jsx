@@ -10,10 +10,13 @@ const SectionWrapper = (Component, idName) =>
         variants={staggerContainer()}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.25 }}
+        // FIX: Change amount to 0 so it triggers immediately when visible
+        viewport={{ once: true, amount: 0 }}
         className="relative z-0 w-full"
       >
-        {/* Full-bleed section background can live inside Component */}
+        <span className="hash-span" id={idName}>
+          &nbsp;
+        </span>
         <div className={`${styles.padding} max-w-7xl mx-auto`}>
           <Component />
         </div>

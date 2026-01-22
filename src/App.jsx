@@ -17,35 +17,28 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      {/* 1. The Main Scroll Container 
-        We ref this so the 3D Canvas knows where "scrolling" happens.
-      */}
       <div
         ref={mainRef}
-        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-paper text-primary selection:bg-bento-pink selection:text-primary"
+        // CHANGED: bg-paper -> bg-black. 
+        // This ensures the Hero (Black) and Works (now Dark) blend seamlessly.
+        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-black text-white selection:bg-[#F8C8DC] selection:text-black"
       >
         <Navbar />
 
-        {/* 2. The Global 3D Layer 
-           This sits *behind* the HTML but *listens* to the HTML container.
-           pointer-events-none ensures clicks pass through to buttons, 
-           but eventSource={mainRef} allows 3D objects to still react to hover!
-        */}
         <Canvas
           className="!fixed inset-0 top-0 left-0 z-30 pointer-events-none"
           eventSource={mainRef}
-          style={{ position: "fixed" }} // Safety style
+          style={{ position: "fixed" }} 
         >
-          {/* This renders all the <View> contents from other components */}
           <View.Port />
         </Canvas>
 
-        {/* 3. The Content Layer (HTML) */}
         <div className="relative z-10">
           <Hero />
-          {/* Placeholder sections for now */}
-          <div className="bg-paper">
+          {/* Changed internal wrapper to transparent or black */}
+          <div className="bg-black">
             <Works />
+            {/* You may want to update About/Tech/Experience to dark mode too, or use 'bg-paper' on them individually if you want them light. */}
             <About />
             <Tech />
             <Experience />
