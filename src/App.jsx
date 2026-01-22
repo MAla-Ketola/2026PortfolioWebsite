@@ -43,12 +43,11 @@ const App = () => {
         {/* 3. The Content Layer (HTML) */}
         <div className="relative z-10">
           <Hero />
-          
           {/* Placeholder sections for now */}
           <div className="bg-paper">
+            <Works />
             <About />
             <Tech />
-            <Works />
             <Experience />
             <Contact />
           </div>
