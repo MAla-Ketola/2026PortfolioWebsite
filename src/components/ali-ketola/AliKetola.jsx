@@ -1,7 +1,5 @@
-import React from "react";
-import SectionTitleStyles from "./shared/SectionTitleStyles";
-import { StepNav } from "./shared/ui";
 import { SectionWrapper } from "/src/hoc";
+import { ShapeDivider } from "./shared/ui";
 
 import Hero from "./sections/Hero";
 import Define from "./sections/Define";
@@ -14,15 +12,18 @@ import Nav from "./sections/Nav";
 function AliKetola() {
   return (
     <>
-      <SectionTitleStyles />
-      {/* ...Title + Meta/Impact block you already have... */}
       <Hero />
-      <div className="mt-24 md:mt-32 xl:mt-40 space-y-24 md:space-y-32 xl:space-y-40">
+      <div className="mt-24 md:mt-32 xl:mt-40 space-y-12 md:space-y-16">
         <Nav />
+        <ShapeDivider />
         <Define />
+        <ShapeDivider />
         <Ideate />
+        <ShapeDivider />
         <Prototype />
+        <ShapeDivider />
         <Implement />
+        <ShapeDivider />
         <Validate />
       </div>
     </>

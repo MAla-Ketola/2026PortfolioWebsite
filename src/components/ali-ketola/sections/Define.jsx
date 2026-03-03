@@ -1,14 +1,5 @@
-import React from "react";
-import { SectionHeader, Panel, Chip } from "../shared/ui";
-import {
-  interview,
-  problems,
-  goals,
-  goalsParagraph,
-  competitors,
-  EDGE,
-  SOFT,
-} from "../content";
+import { SectionHeader, Card } from "../shared/ui";
+import { problems, goals, goalsParagraph, competitors, interview } from "../content";
 import { motion } from "framer-motion";
 
 import {
@@ -18,7 +9,21 @@ import {
   AKproblem4,
   AKproblem5,
   AKproblem6,
+  heroGreenEscape,
+  heroAhlstrom,
+  heroKauttua,
 } from "../../../assets";
+
+const competitorImages = [heroGreenEscape, heroAhlstrom, heroKauttua];
+
+const palette = [
+  "#25E995",
+  "#F087FE",
+  "#8C52FD",
+  "#FED814",
+  "#01D6FB",
+  "#F844C2",
+];
 
 const akProblemShots = [
   { src: AKproblem1, alt: "AK problem 01" },
@@ -34,65 +39,28 @@ const goalItems = goals.map((title, i) => ({
   desc: (goalsParagraph && goalsParagraph[i]) || "",
 }));
 
-// Toggle here: "emoji" | "mono"
-const ICON_STYLE = "emoji";
-
-const GOAL_KEYS = [
-  "identity",
-  "ia",
-  "showcase",
-  "multilingual",
-  "cms",
-  "booking",
-];
-
-const GOAL_ICONS = {
-  mono: {
-    identity: "◈", // visual identity
-    ia: "⟷", // IA / navigation
-    showcase: "▦", // cards/grid
-    multilingual: "⇄", // languages
-    cms: "✎", // editing
-    booking: "✉︎", // contact/booking (text-style)
-  },
-  emoji: {
-    identity: "🎨",
-    ia: "🧭",
-    showcase: "🖼️",
-    multilingual: "🌐",
-    cms: "🧰",
-    booking: "☎️",
-  },
-};
-
 export default function Define() {
   return (
-    <section
-      id="define"
-      className="mt-8"
-      style={{
-        // Define = keep brand magenta
-        "--accent": "#B25AFF",
-        "--divide": "rgba(178,90,255,0.25)",
-        "--soft": "rgba(178,90,255,0.06)",
-      }}
-    >
-      <SectionHeader label="DEFINE" title="The Problem & Goals" />
+    <section id="define" className="mt-12">
+      <SectionHeader label="DEFINE" title="The Problem & Goals" color="#25E995" />
 
-      {/* Main subsection title */}
-      <h3 className="text-2xl md:text-3xl font-semibold text-white mt-12">
-        The problem
+      {/* Subsection: The Problem */}
+      <h3
+        className="text-2xl md:text-4xl font-black text-white mt-12 uppercase tracking-tight text-center"
+        style={{ fontFamily: "'Milkyway', sans-serif" }}
+      >
+        The Problem
       </h3>
 
-      <p className="mt-4 max-w-3xl text-white/90 font-mono text-[15px] leading-7">
+      <p className="mt-4 max-w-3xl text-lg text-gray-400 leading-relaxed text-center mx-auto">
         The previous Ali-Ketolan Tila website suffered from an outdated design
-        and an unwieldy layout that undercut the farm’s potential to engage
+        and an unwieldy layout that undercut the farm's potential to engage
         visitors:
       </p>
 
       {/* Problem Cards */}
       <motion.div
-        className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.25 }}
@@ -108,41 +76,39 @@ export default function Define() {
               hidden: { opacity: 0, y: 10 },
               show: { opacity: 1, y: 0 },
             }}
-            style={{
-              "--accent": "#FF2BD1",
-              "--divide": "rgba(255, 43, 209, 0.28)",
-              "--soft": "rgba(255, 43, 209, 0.09)",
-            }}
           >
-            <Panel
-              title={`/usr/problem-${String(i + 1).padStart(2, "0")}`}
-              className="h-full"
-            >
-              <div className="px-2 py-2 md:px-3 md:py-3 min-h-[140px] flex items-center justify-center">
-                <p className="text-center font-mono text-[14.5px] md:text-[15px] leading-7 text-white/90">
+            <Card className="h-full">
+              <div className="p-5 min-h-[160px] flex flex-col">
+                <span
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-black text-black mb-4 self-start flex-shrink-0"
+                  style={{ backgroundColor: palette[i % palette.length] }}
+                >
+                  {i + 1}
+                </span>
+                <p className="text-base md:text-lg text-white/90 leading-relaxed text-center flex-1 flex items-center justify-center">
                   {text}
                 </p>
               </div>
-            </Panel>
+            </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      <p className="mt-12 max-w-3xl text-white/90 font-mono text-[15px] leading-7 text-center mx-auto">
-        Let’s zoom in on the details:
+      <p className="mt-12 max-w-3xl text-lg text-gray-400 leading-relaxed text-center mx-auto">
+        Let's zoom in on the details:
       </p>
 
-      {/* Desktop grid fallback */}
-      <div className="hidden md:grid mt-12 grid-cols-2 gap-4">
+      {/* Problem screenshots */}
+      <div className="flex flex-col mt-10 gap-6">
         {akProblemShots.map((img, i) => (
           <motion.figure
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="lg:col-span-7"
+            transition={{ duration: 0.5 }}
             key={`ak-${i}`}
           >
-            <div className="relative w-full overflow-hidden rounded-2xl min-h-[300px] lg:min-h-0 lg:h-full">
+            <div className="relative w-full overflow-hidden rounded-[20px] shadow-lg min-h-[300px] lg:min-h-0 lg:h-full">
               <img
                 src={img.src}
                 alt={img.alt}
@@ -154,133 +120,131 @@ export default function Define() {
         ))}
       </div>
 
-      {/* --- Goals */}
-      <h3 className="text-2xl md:text-3xl font-semibold text-white mt-24">
+      {/* Subsection: Goals */}
+      <h3
+        className="text-2xl md:text-4xl font-black text-white mt-24 uppercase tracking-tight text-center"
+        style={{ fontFamily: "'Milkyway', sans-serif" }}
+      >
         Goals
       </h3>
 
-      <p className="mt-4 max-w-3xl text-white/90 font-mono text-[15px] leading-7">
-        To address these issues, we set out six key{" "}
-        <span className="relative inline-block">
-          <span className="text-white">goals</span>
-          <span
-            aria-hidden
-            className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"
-          />
-          <span
-            aria-hidden
-            className="absolute left-0 right-0 -bottom-1 h-[6px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-45 blur-[3px]"
-          />
-        </span>
-        :
+      <p className="mt-4 max-w-3xl text-lg text-gray-400 leading-relaxed text-center mx-auto">
+        To address these issues, we set out{" "}
+        <strong className="text-[#F087FE]"> six key goals</strong>:
       </p>
 
-      {/* Scoped mint accent just for Goals */}
-      <div
-        className="mt-6"
-        style={{
-          // mint accent for Goals (distinct from Problems' neon pink)
-          "--accent": "#74FFCD",
-          "--divide": "rgba(116,255,205,0.26)",
-          "--soft": "rgba(116,255,205,0.08)",
+      {/* Goal Rows */}
+      <motion.div
+        className="mt-8"
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.15 }}
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
         }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-          {goalItems.map((item, i) => {
-            const key = GOAL_KEYS[i] ?? "identity";
-            return (
-              <motion.div
-                key={`goal-${i}-${key}`}
-                whileHover={{ y: -2 }}
-                transition={{ type: "spring", stiffness: 220, damping: 18 }}
-                className="h-full"
+        <Card>
+          {goalItems.map((item, i, arr) => (
+            <motion.div
+              key={i}
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                show: { opacity: 1, y: 0 },
+              }}
+              className={`flex gap-4 p-5 md:p-6 ${i < arr.length - 1 ? "border-b border-white/10" : ""}`}
+            >
+              <span
+                className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-black text-black flex-shrink-0 mt-0.5"
+                style={{ backgroundColor: palette[i % palette.length] }}
               >
-                <Panel
-                  title={`/usr/goal-${String(i + 1).padStart(2, "0")}`}
-                  className="h-full"
-                >
-                  <div className="p-4 md:p-5 flex flex-col h-full group">
-                    {/* Title block */}
-                    <div
-                      className="grid place-items-center text-center gap-2 px-4 border-b
-             h-[160px] md:h-[176px]"
-                      style={{
-                        borderColor: "var(--divide)",
-                        borderBottomWidth: "2px",
-                      }}
-                    >
-                      {/* soft radial glow behind icon */}
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0"
-                      />
-                      {/* Icon */}
-                      <span
-                        aria-hidden
-                        className={
-                          ICON_STYLE === "emoji"
-                            ? "relative z-10 text-3xl md:text-4xl leading-none translate-y-[1px]"
-                            : "relative z-10 text-2xl md:text-3xl leading-none"
-                        }
-                      >
-                        {GOAL_ICONS[ICON_STYLE][key]}
-                      </span>
-
-                      {/* Title */}
-                      <h4 className="font-mono text-[15px] md:text-[16px] font-semibold text-white leading-tight
-             max-w-[22ch] [text-wrap:balance]">
-                        {item.title}
-                      </h4>
-
-                      {/* hairline under title */}
-                      <div
-                        className="absolute left-4 right-4 -bottom-px h-px"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, transparent, var(--divide), transparent)",
-                        }}
-                      />
-                    </div>
-
-                    {/* Body */}
-                    <p className="mt-4 font-mono text-[14px] leading-6 text-white/90 flex-1">
-                      {item.desc}
-                    </p>
-                  </div>
-                </Panel>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <Panel title="/usr/goals">
-          <div className="flex flex-wrap gap-2">
-            {goals.map((g, i) => (
-              <Chip key={i}>{g}</Chip>
-            ))}
-          </div>
-        </Panel>
-      </div>
-
-      <div className="mt-4">
-        <Panel title="/opt/competitive-landscape">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {competitors.map((c, i) => (
-              <div
-                key={i}
-                className="border p-4"
-                style={{ borderColor: EDGE, backgroundColor: SOFT }}
-              >
-                <div className="font-mono text-white/95">{c.name}</div>
-                <p className="mt-2 font-mono text-[13px] text-white/80 leading-6">
-                  {c.notes}
+                {i + 1}
+              </span>
+              <div className="flex-1 md:grid md:grid-cols-[5fr_8fr] md:gap-8">
+                <h4 className="font-bold text-white text-base leading-snug">
+                  {item.title}
+                </h4>
+                <p className="mt-1 md:mt-0 text-sm text-gray-400 leading-relaxed">
+                  {item.desc}
                 </p>
               </div>
-            ))}
+            </motion.div>
+          ))}
+        </Card>
+      </motion.div>
+
+      {/* Competitive Landscape */}
+      <h3
+        className="text-2xl md:text-4xl font-black text-white mt-24 uppercase tracking-tight text-center"
+        style={{ fontFamily: "'Milkyway', sans-serif" }}
+      >
+        Competitive Landscape
+      </h3>
+
+      <p className="mt-4 max-w-3xl text-lg text-gray-400 leading-relaxed text-center mx-auto">
+       <strong className="text-[#F087FE]">We benchmarked three similar hospitality venues</strong> {" "}to surface best practices and differentiation opportunities:
+      </p>
+
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {competitors.map((c, i) => (
+          <div
+            key={i}
+            className="bg-[#111] rounded-[20px] border border-white/10 overflow-hidden"
+          >
+            <div className="w-full h-40 overflow-hidden">
+              <img
+                src={competitorImages[i]}
+                alt={`${c.name} website`}
+                className="w-full h-full object-cover"
+                style={{ objectPosition: c.imgPosition || "top" }}
+                loading="lazy"
+              />
+            </div>
+            <div className="p-5">
+              <div className="text-base font-bold text-white">{c.name}</div>
+              <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+                {c.notes}
+              </p>
+              {c.takeaway && (
+                <div className="mt-4 border-l-2 border-[#FED814] pl-3 flex items-start gap-2">
+                  <span className="text-base leading-none mt-0.5">🔍</span>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    <span className="font-bold text-white">Key takeaway:</span> {c.takeaway}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </Panel>
+        ))}
+      </div>
+
+      {/* Client Interview Highlights */}
+      <div className="mt-16 bg-[#111] rounded-[20px] border border-white/10 p-8 md:p-12 relative overflow-hidden">
+        <h4 className="text-center font-bold text-white text-xl mb-8">
+          Client interview highlights
+        </h4>
+        <span
+          className="absolute top-6 left-6 text-7xl font-black leading-none select-none pointer-events-none"
+          style={{ color: "#FED814", opacity: 0.70 }}
+        >
+          "
+        </span>
+        <span
+          className="absolute bottom-4 right-6 text-7xl font-black leading-none select-none pointer-events-none"
+          style={{ color: "#FED814", opacity: 0.70 }}
+        >
+          "
+        </span>
+        <div className="space-y-6">
+          {interview.map((quote, i) => (
+            <p
+              key={i}
+              className="text-center text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto"
+            >
+              {quote}
+            </p>
+          ))}
+        </div>
       </div>
     </section>
   );

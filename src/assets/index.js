@@ -35,6 +35,26 @@ import AKproblem3 from "./ali-ketola/AKproblem3.png";
 import AKproblem4 from "./ali-ketola/AKproblem4.png";
 import AKproblem5 from "./ali-ketola/AKproblem5.png";
 import AKproblem6 from "./ali-ketola/AKproblem6.png";
+import heroGreenEscape from "./ali-ketola/heroGreenEscape.png";
+import heroAhlstrom from "./ali-ketola/heroAhlström.png";
+import heroKauttua from "./ali-ketola/heroKauttua.png";
+import AKmoodboard from "./ali-ketola/moodboard.png";
+import AKgliker from "./ali-ketola/gliker.png";
+import AKquicksand from "./ali-ketola/quicksand.png";
+import AKlogoB from "./ali-ketola/Ali-Ketola-logo-B.png";
+import AKlogoW from "./ali-ketola/Ali-Ketola-logo-W - Copy.png";
+import AKbutton1 from "./ali-ketola/buttons/19.png";
+import AKbutton2 from "./ali-ketola/buttons/20.png";
+import AKcard from "./ali-ketola/card.png";
+import AKphoto1 from "./ali-ketola/IMG_3735.jpg";
+import AKphoto2 from "./ali-ketola/IMG_3761.jpg";
+import AKphoto3 from "./ali-ketola/IMG_4349.jpg";
+import AKphoto4 from "./ali-ketola/IMG_4425.jpg";
+import AKphoto5 from "./ali-ketola/IMG_4440.jpg";
+import AKsitemap from "./ali-ketola/Ali-Ketolan Tila's Nav Menu.png";
+import AKwireframeHome from "./ali-ketola/low-fid Etusivu.png";
+import AKwireframeServices from "./ali-ketola/low-fid Palvelut.png";
+import AKwireframeAccommodation from "./ali-ketola/low-fid Majoitus.png";
 
 export {
   github,
@@ -70,4 +90,24 @@ export {
   AKproblem4,
   AKproblem5,
   AKproblem6,
+  heroGreenEscape,
+  heroAhlstrom,
+  heroKauttua,
+  AKmoodboard,
+  AKgliker,
+  AKquicksand,
+  AKlogoB,
+  AKlogoW,
+  AKbutton1,
+  AKbutton2,
+  AKcard,
+  AKphoto1,
+  AKphoto2,
+  AKphoto3,
+  AKphoto4,
+  AKphoto5,
+  AKsitemap,
+  AKwireframeHome,
+  AKwireframeServices,
+  AKwireframeAccommodation,
 };

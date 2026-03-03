@@ -12,12 +12,18 @@ const SectionWrapper = (Component, idName) =>
         whileInView="show"
         // FIX: Change amount to 0 so it triggers immediately when visible
         viewport={{ once: true, amount: 0 }}
-        className="relative z-0 w-full"
+        className={`relative w-full ${idName === "about" ? "z-20" : "z-0"}`}
       >
         <span className="hash-span" id={idName}>
           &nbsp;
         </span>
-        <div className={`${styles.padding} max-w-7xl mx-auto`}>
+        <div
+          className={
+            idName === "hero" || idName === "tech" || idName === "about" || idName === "contact"
+              ? ""
+              : `${styles.padding} max-w-7xl mx-auto`
+          }
+        >
           <Component />
         </div>
       </motion.section>

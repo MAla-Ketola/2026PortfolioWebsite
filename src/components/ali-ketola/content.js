@@ -1,9 +1,4 @@
 // src/components/case-studies/ali-ketola/content.js
-export const EDGE = "rgba(178,90,255,0.30)";
-export const DIVIDE = "rgba(178,90,255,0.25)";
-export const SOFT = "rgba(178,90,255,0.06)";
-export const NEAR = "rgba(232,240,255,0.92)";
-
 export const meta = {
   project: "End-to-end responsive website + branding",
   role: "Sole UX/UI & brand designer; Wix build",
@@ -12,9 +7,9 @@ export const meta = {
 };
 
 export const interview = [
-  "Warmer, more personal tone — like stepping into the home.",
-  "Replace stock photos with authentic on-site imagery.",
-  "Offer diverse services without overwhelming; keep it organised and intuitive.",
+  "We need a warmer, more personal tone that feels like stepping into our home.",
+  "Our previous site felt out of touch with the actual place; we want visitors to see real photos, not stock images.",
+  "We offer diverse services — accommodation, weddings, retreats — but don't want to overwhelm users. Everything should feel organized and intuitive.",
 ];
 
 export const problems = [
@@ -32,7 +27,7 @@ export const goals = [
   "Showcase services & accommodations (card-based layouts)",
   "Streamline multilingual support",
   "Empower the client with a user-friendly CMS",
-  "Honor booking preference: emphasise call/email contact over on-site checkout",
+  "Honor client booking preference",
 ];
 
 export const goalsParagraph = [
@@ -45,12 +40,27 @@ export const goalsParagraph = [
 ];
 
 export const competitors = [
-  { name: "Green Escape", notes: "Full-width autoplay hero + search; deep green palette; card grid." },
-  { name: "Ahlström Noormarkku", notes: "Looping hero, floating phone callout, fixed booking button; muted taupe/brown-gray." },
-  { name: "Kauttuan Ruukinkartano", notes: "Static hero with single CTA; warm terracotta + serif type." },
+  {
+    name: "Green Escape",
+    notes: "Full-width autoplay hero + search; deep green palette; card grid.",
+    takeaway: "Immersive video storytelling and front-and-center CTAs.",
+    imgPosition: "top",
+  },
+  {
+    name: "Ahlström Noormarkku",
+    notes: "Looping hero, floating phone callout, fixed booking button; muted taupe/brown-gray.",
+    takeaway: "Persistent floating CTAs keep contact options visible at all times.",
+    imgPosition: "center",
+  },
+  {
+    name: "Kauttuan Ruukinkartano",
+    notes: "Static hero with single CTA; warm terracotta + serif type.",
+    takeaway: "Warm palette and serif typography signal quality and authenticity.",
+    imgPosition: "top",
+  },
 ];
 
-export const palette = ["#384B24", "#5C91A4", "#DBC09D", "#E4D0B5"];
+export const palette = ["#384B24", "#d9e4ea", "#DBC09D", "#E4D0B5"];
 export const typography = ["Gliker (headings)", "Quicksand (body)"];
 
 export const patterns = [
@@ -63,25 +73,10 @@ export const patterns = [
 ];
 
 export const buildPoints = [
-  "Repeatable Wix strips for services & accommodations",
-  "Site-wide header/footer for brand consistency",
-  "Multilingual toggle in sticky header",
-  "On-page SEO: meta titles, descriptions, alt text",
-  "Concise PDF training guide for editors",
-  "Short tutorial video for News posts (add/edit/remove)",
-  "Quick-reference instructions for price/copy updates",
-  "Soft launch to verify analytics & flows",
-];
-
-export const validateStats = [
-  { label: "Bounce rate", value: "48%", note: "↓ 17%" },
-  { label: "Pages / session", value: "2.0", note: "↑ 21%" },
-  { label: "Device split", value: "77%", note: "mobile (23% desktop)" },
-];
-
-export const topFlows = [
-  "Services (/palvelut) most-visited after Home; 22% navigated there first",
-  "Next: Accommodations (/majoitushinnat) and Event spaces (/juhlatilaisuudet)",
+  "Delivered a concise PDF training guide covering general content edits and site maintenance.",
+  "Produced a focused 2‑minute video tutorial demonstrating how to add, edit, and remove News posts.",
+  "Provided quick-reference instructions for simple text updates, such as changing prices or copy, directly within the editor.",
+  "Conducted a soft launch to verify analytics setup and user flows before going live.",
 ];
 
 export const feedback = [
@@ -90,20 +85,46 @@ export const feedback = [
   "It’s easy to find and update content now.",
 ];
 
-export const wentWell = [
-  "Rapid prototyping aligned stakeholders",
-  "Repeatable strips empowered client maintenance",
+export const analyticsCards = [
+  {
+    stat: "48%",
+    note: "↓ 17%",
+    color: "#25E995",
+    title: "Bounce Rate & Engagement",
+    desc: "Bounce rate improved to 48% (a 17% drop), and average pages per session rose to 2.0 (up 21%), showing increased exploration.",
+  },
+  {
+    stat: "22%",
+    note: "navigated to Services first",
+    color: "#F087FE",
+    title: "Top Pages & Navigation Flows",
+    desc: "The Services page (/palvelut) was the most-visited after the homepage, followed by Accommodations and Event spaces — validating our IA focus.",
+  },
+  {
+    stat: "30–45",
+    note: "sessions / day",
+    color: "#FED814",
+    title: "Overall Traffic Trends",
+    desc: "Sessions stabilized with a slight dip immediately post-launch followed by a steady climb — indicating user acclimation to the new design.",
+  },
+  {
+    stat: "77%",
+    note: "mobile (23% desktop)",
+    color: "#8C52FD",
+    title: "Device Breakdown",
+    desc: "Mobile dominated sessions, confirming the need to prioritize mobile CTA prominence and responsive behavior.",
+  },
 ];
 
-export const opportunities = [
-  "SEO audit to boost organic traffic",
-  "Dynamic events calendar",
-  "Quarterly analytics reviews",
-];
+export const wentWellText =
+  "Rapid prototyping and stakeholder alignment accelerated the build; repeatable strips empowered the client to maintain content without developer support.";
 
-export const lessons = [
-  "Go deeper on Wix CMS to streamline translations",
-  "Prioritise responsive grids/breakpoints earlier",
-  "Consider Collections or custom code for complex card modules",
-  "Usability tests for mobile CTAs; A/B hero messaging",
+export const opportunitiesText =
+  "Plan an SEO audit to boost organic traffic, implement a dynamic events calendar to keep visitors engaged, and schedule quarterly analytics reviews to inform ongoing enhancements.";
+
+export const lessonsFull = [
+  "Invest more time in mastering Wix’s CMS features to streamline content management and translations.",
+  "Prioritize responsive design workflows earlier, using flexible grids and breakpoints to ensure mobile consistency.",
+  "Explore alternative layout techniques (e.g., Collection elements or custom code) instead of relying solely on repeatable strips for card modules.",
+  "Conduct formal usability tests on mobile CTAs and implement A/B tests for hero messaging.",
 ];

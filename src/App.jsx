@@ -1,50 +1,74 @@
-import React, { useRef } from "react";
-import { BrowserRouter } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { View } from "@react-three/drei";
-import {
-  About,
-  Contact,
-  Experience,
-  Navbar,
-  Works,
-  Hero,
-  Tech,
-} from "./components";
+import { About, Contact, Experience, Footer, Navbar, Works, Hero, Tech } from "./components";
+import AliKetolaPage from "./pages/AliKetolaPage";
+import HappyTrackerPage from "./pages/HappyTrackerPage";
 
+const HashScrollHandler = () => {
+  const { hash, pathname } = useLocation();
+
+  React.useEffect(() => {
+    if (!hash) return;
+
+    const id = hash.replace("#", "");
+
+    const scrollToHashTarget = () => {
+      const target = document.getElementById(id);
+      if (!target) return false;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return true;
+    };
+
+    if (scrollToHashTarget()) return;
+
+    const timeout = setTimeout(scrollToHashTarget, 100);
+    return () => clearTimeout(timeout);
+  }, [hash, pathname]);
+
+  return null;
+};
 
 const App = () => {
-  const mainRef = useRef(null);
+  const mainRef = React.useRef(null);
 
   return (
     <BrowserRouter>
+      <HashScrollHandler />
       <div
         ref={mainRef}
-        // CHANGED: bg-paper -> bg-black. 
-        // This ensures the Hero (Black) and Works (now Dark) blend seamlessly.
-        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-black text-white selection:bg-[#ebff36] selection:text-black"
+        id="app-scroll"
+        className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-black text-white selection:bg-[#FED814] selection:text-black"
       >
         <Navbar />
 
         <Canvas
           className="!fixed inset-0 top-0 left-0 z-30 pointer-events-none"
           eventSource={mainRef}
-          style={{ position: "fixed" }} 
+          style={{ position: "fixed" }}
         >
           <View.Port />
         </Canvas>
 
         <div className="relative z-10">
-          <Hero />
-          {/* Changed internal wrapper to transparent or black */}
-          <div className="bg-black">
-            <Works />
-            {/* You may want to update About/Tech/Experience to dark mode too, or use 'bg-paper' on them individually if you want them light. */}
-            <About />
-            <Tech />
-            <Experience />
-            <Contact />
-          </div>
+          <Routes>
+            <Route path="/" element={
+              <>
+                <Hero />
+                <div className="bg-black">
+                  <Works />
+                  <About />
+                  <Tech />
+                  <Experience />
+                  <Contact />
+                  <Footer />
+                </div>
+              </>
+            } />
+            <Route path="/ali-ketola" element={<AliKetolaPage />} />
+            <Route path="/happy-tracker" element={<HappyTrackerPage />} />
+          </Routes>
         </div>
       </div>
     </BrowserRouter>

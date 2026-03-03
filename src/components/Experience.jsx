@@ -1,366 +1,447 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useRef, useEffect, useState, Suspense, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { useTexture, Float, Decal, ContactShadows } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Float, Environment } from "@react-three/drei";
 import * as THREE from "three";
-
-import { styles } from "../styles";
 import { experiences } from "../constants";
 import { SectionWrapper } from "../hoc";
 
-// --- 0. DATA CONFIGURATION ---
+import sticker1 from "/Stickers/1.png";
+import sticker2 from "/Stickers/2.png";
+import sticker3 from "/Stickers/3.png";
+import sticker4 from "/Stickers/4.png";
+import sticker5 from "/Stickers/5.png";
+import sticker6 from "/Stickers/6.png";
+
+const palette = ["#25E995", "#F087FE", "#8C52FD", "#FED814", "#01D6FB", "#F844C2"];
+
+export const stickers = [sticker2, sticker1, sticker3, sticker4, sticker5, sticker6];
+
+// --- Glass Sphere ---
+const GlassSphere = () => {
+  const meshRef = useRef();
+
+  useFrame((_, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.3;
+      meshRef.current.rotation.x += delta * 0.15;
+    }
+  });
+
+  return (
+    <Float speed={2} rotationIntensity={1} floatIntensity={3}>
+      <mesh ref={meshRef} scale={1.5}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshPhysicalMaterial
+          color="#FED814"
+          emissive="#FED814"
+          emissiveIntensity={0.15}
+          roughness={0.2}
+          metalness={0.4}
+          reflectivity={0.5}
+        />
+      </mesh>
+    </Float>
+  );
+};
+
+// --- Heart Shape ---
+const heartGeometry = (() => {
+  const s = new THREE.Shape();
+  s.moveTo(0.25, 0.25);
+  s.bezierCurveTo(0.25, 0.25, 0.2, 0, 0, 0);
+  s.bezierCurveTo(-0.35, 0, -0.35, 0.35, -0.35, 0.35);
+  s.bezierCurveTo(-0.35, 0.55, -0.15, 0.77, 0.25, 0.95);
+  s.bezierCurveTo(0.6, 0.77, 0.8, 0.55, 0.8, 0.35);
+  s.bezierCurveTo(0.8, 0.35, 0.8, 0, 0.5, 0);
+  s.bezierCurveTo(0.35, 0, 0.25, 0.25, 0.25, 0.25);
+  const geo = new THREE.ExtrudeGeometry(s, {
+    depth: 0.4,
+    bevelEnabled: true,
+    bevelThickness: 0.06,
+    bevelSize: 0.06,
+    bevelSegments: 3,
+  });
+  geo.center();
+  return geo;
+})();
+
+const HeartShape = () => {
+  return (
+    <Float speed={2} rotationIntensity={0.3} floatIntensity={1}>
+      <mesh geometry={heartGeometry} scale={3} rotation={[-0.1, -0.3, Math.PI]}>
+        <meshPhysicalMaterial
+          color="#F087FE"
+          emissive="#F087FE"
+          emissiveIntensity={0.15}
+          roughness={0.2}
+          metalness={0.4}
+          reflectivity={0.5}
+        />
+      </mesh>
+    </Float>
+  );
+};
+
+const HeartCanvas = () => (
+  <div className="w-[200px] md:w-[240px] h-[150px] md:h-[200px]">
+    <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+      <Suspense fallback={null}>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} intensity={1} />
+        <pointLight position={[-3, -3, 2]} intensity={0.5} color="#F087FE" />
+        <pointLight position={[3, 3, 2]} intensity={0.5} color="#01D6FB" />
+        <HeartShape />
+        <Environment preset="warehouse" />
+      </Suspense>
+    </Canvas>
+  </div>
+);
+
+const GlassSphereCanvas = () => (
+  <div className="w-[200px] md:w-[200px] h-[100px] md:h-[200px]">
+    <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+      <Suspense fallback={null}>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} intensity={1} />
+        <pointLight position={[-3, -3, 2]} intensity={0.5} color="#F087FE" />
+        <pointLight position={[3, 3, 2]} intensity={0.5} color="#01D6FB" />
+        <GlassSphere />
+        <Environment preset="warehouse" />
+      </Suspense>
+    </Canvas>
+  </div>
+);
+
 const extraCard = {
   title: "Next Chapter",
-  company_name: "Future",
+  company_name: "Ready to build scalable applications and creative web experiences.",
+  icon: experiences[0].icon,
+  iconBg: "#383E56",
   date: "2024 - Present",
-  icon: experiences[0].icon, 
   points: [
     "Looking forward to new challenges and opportunities.",
-    "Ready to build scalable applications and creative 3D web experiences.",
   ],
 };
 
 const allExperiences = [...experiences, extraCard];
 
-// --- 1. The Pearl String (Natural Curve + Connector Support) ---
-const PearlString = ({ startY, endY, curveScale = 1 }) => {
-  const length = Math.abs(startY - endY);
-  const distPerUnit = 0.15; 
-  const beadCount = Math.floor(length / distPerUnit);
-  const beads = [];
+// --- Sticker with company icon ---
+const Sticker = ({ sticker, icon, color }) => (
+ /* <div
+    className="w-14 h-14 rounded-full flex items-center justify-center"
+    style={{ backgroundColor: color }}
+  >
+    <img src={icon} alt="company" className="w-9 h-9 object-contain rounded-full" />
+  </div>*/
 
-  for (let i = 0; i <= beadCount; i++) {
-    const t = i / beadCount; 
-    const y = startY + (endY - startY) * t;
-    
-    // curveScale allows us to flatten the curve for the heavy end-piece
-    const xCurve = (Math.pow(Math.sin(t * Math.PI), 1.5) * 0.12 * curveScale) + (Math.sin(t * 12) * 0.01 * curveScale); 
-    const zCurve = (Math.sin(t * Math.PI) * 0.05 * curveScale) + (Math.cos(t * 20) * 0.01 * curveScale); 
-    
-    const isSpacer = i % 2 !== 0; 
+    <div style={{ position: "relative", width: "15%", aspectRatio: "1 / 1" }}
+  >
+    <img src={sticker} alt="sticker" style={{ 
+      position: "absolute",
+      inset: 0,
+      width: "100%", 
+      height: "100%", 
+      objectFit: "contain", 
+      display: "block" }} />
 
-    if (isSpacer) {
-      beads.push(
-        <mesh key={`spacer-${i}`} position={[xCurve, y, zCurve]}>
-          <sphereGeometry args={[0.05, 16, 16]} /> 
-          <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.2} />
-        </mesh>
-      );
-    } else {
-      beads.push(
-        <mesh key={`pearl-${i}`} position={[xCurve, y, zCurve]}>
-          <sphereGeometry args={[0.11, 32, 32]} />
-          <meshPhysicalMaterial 
-            color="#FFFDD0" 
-            roughness={0.15} 
-            metalness={0.1} 
-            clearcoat={1} 
-            clearcoatRoughness={0.1} 
-            reflectivity={1} 
-          />
-        </mesh>
-      );
-    }
-  }
-  return <group>{beads}</group>;
-};
+    <img src={icon} alt="company" style={{
+      position: "absolute",
+      inset: 0,
+      transform: "translate(33%, 33%)",
+      width: "60%",
+      height: "60%",
+      objectFit: "contain",
+      zIndex: 2,
+    }} />
+  </div>
+);
 
-// --- 2. The Interactive Flower ---
-const Flower = ({ icon, position, isHovered }) => {
-  const texture = useTexture(icon);
-  const palette = ["#F8C8DC", "#C1E1C1", "#BDE0FE", "#FDFD96", "#FFCCB0"];
-  const colorIndex = Math.floor(Math.abs(position[1] * 100)) % palette.length; 
-  const color = palette[colorIndex];
-  
-  const floatOffset = position[1] * 0.5;
+// --- Experience Card ---
+const ExperienceCard = ({ experience, index }) => {
+  const isLeft = index % 2 === 0;
+  const color = palette[index % palette.length];
+  const sticker = stickers[index % stickers.length];
 
   return (
-    <group position={position} scale={isHovered ? 0.30 : 0.25}> 
-      <Float 
-        speed={2} 
-        // CHANGE: Increased from 0 to 0.4. 
-        // This adds a gentle, random twist/tilt to simulate loose beads.
-        rotationIntensity={0.4} 
-        floatIntensity={0.5} 
-        floatingRange={[-0.05, 0.05]} 
-        offset={floatOffset} 
-      >
-        <group>
-          {/* A. PETALS */}
-          <group position={[0, 0, 0]}>
-            {[0, 72, 144, 216, 288].map((angle, i) => {
-              const rad = (angle * Math.PI) / 180;
-              const x = Math.cos(rad) * 1; 
-              const y = Math.sin(rad) * 1; 
-              return (
-                <mesh key={i} position={[x, y, 0]}>
-                  <sphereGeometry args={[0.7, 32, 32]} />
-                  <meshStandardMaterial color={color} roughness={0.2} metalness={0.1}/>
-                </mesh>
-              );
-            })}
-          </group>
+    <div className={`flex items-center w-full mb-12 md:mb-0 ${isLeft ? "md:flex-row" : "md:flex-row-reverse"}`}>
+      {/* Card side */}
+      <div className="flex-1 flex justify-center md:justify-end md:pr-0">
+        <motion.div
+          initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className={`w-full max-w-md ${isLeft ? "md:mr-12" : "md:ml-12"}`}
+        >
+          <div
+            className="relative p-6 rounded-2xl border border-white/10 bg-[#111111] overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+            style={{
+              boxShadow: "0 0 0 rgba(0,0,0,0)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = `0 0 25px ${color}33, 0 0 50px ${color}1a`;
+              e.currentTarget.style.borderColor = `${color}40`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 0 0 rgba(0,0,0,0)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
+          >
+            {/* Sticker + date row */}
+            <div className="flex items-center gap-4 mb-4">
+              <Sticker sticker={sticker} icon={experience.icon} color={color} />
+              <span className="text-sm font-bold uppercase tracking-widest" style={{ color }}>
+                {experience.date}
+              </span>
+            </div>
 
-          {/* B. FRONT CAP */}
-          <group position={[0, 0, 0.05]}>
-             <mesh rotation={[Math.PI/2, 0, 0]}>
-                 <cylinderGeometry args={[0.85, 0.85, 0.1, 32]} />
-                 <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.3} />
-             </mesh>
-             <mesh position={[0, 0, 0]}>
-                <sphereGeometry args={[0.8, 32, 32]} />
-                <meshStandardMaterial color="#FEF9E7" roughness={0.2} />
-                <Decal position={[0, 0, 0.9]} rotation={[0, 0, 0]} scale={1} map={texture} />
-             </mesh>
-          </group>
-        </group>
-      </Float>
-    </group>
+            <h3
+              className="text-white text-xl font-black uppercase tracking-wide leading-tight mb-2"
+              style={{ fontFamily: "'Milkyway', sans-serif" }}
+            >
+              {experience.title}
+            </h3>
+
+            <p className="text-gray-400 text-sm font-semibold tracking-wider uppercase mb-4">
+              {Array.isArray(experience.company_name)
+                ? experience.company_name.join(" — ")
+                : experience.company_name}
+            </p>
+
+            {experience.points.length > 0 && (
+              <ul className="space-y-2">
+                {experience.points.map((point, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-gray-300 text-sm leading-relaxed">{point}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Center timeline spacer - desktop only */}
+      <div className="hidden md:flex w-[6px] flex-shrink-0" />
+
+      {/* Empty side for layout balance - desktop only */}
+      <div className="hidden md:block flex-1" />
+    </div>
   );
 };
 
-// --- 3. The End Teardrop Charm ---
-const EndDrop = ({ position }) => {
+/* --- [Sparkles] --- */
+const SPARKLE_COUNT = 15;
+
+const Sparkles = () => {
+  const sparkles = useMemo(() =>
+    Array.from({ length: SPARKLE_COUNT }, () => ({
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      size: 8 + Math.random() * 12,
+      delay: Math.random() * 5,
+      duration: 3 + Math.random() * 4,
+      rotate: Math.random() * 360,
+    })),
+  []);
+
   return (
-    <group position={position} scale={0.25}>
-        <Float 
-          speed={2} 
-          // CHANGE: Slight rotation (0.1) so it doesn't look frozen, 
-          // but less than flowers because it's heavy.
-          rotationIntensity={0.1} 
-          floatIntensity={0.5} 
-          floatingRange={[-0.05, 0.05]}
-        >
-            {/* Connector Ring */}
-            <mesh position={[0, 0.3, 0]}>
-                <torusGeometry args={[0.15, 0.04, 16, 32]} />
-                <meshStandardMaterial color="#FFD700" metalness={1} roughness={0.2} />
-            </mesh>
-            {/* Teardrop Pearl */}
-            <mesh position={[0, -0.3, 0]} scale={[1, 1.6, 1]}>
-                <sphereGeometry args={[0.4, 32, 32]} />
-                <meshPhysicalMaterial 
-                    color="#FFFDD0" 
-                    roughness={0.15} 
-                    metalness={0.1} 
-                    clearcoat={1} 
-                    clearcoatRoughness={0.1} 
-                />
-            </mesh>
-        </Float>
-    </group>
-  )
-}
-
-// --- 4. The Rig (Physics-Based Momentum) ---
-const Rig = ({ children }) => {
-  const group = useRef();
-  const { mouse } = useThree();
-  
-  const physics = useRef({
-    velocity: 0,    
-    angle: 0,       
-    lastScroll: 0   
-  });
-
-  useFrame((state, delta) => {
-    if (!group.current) return;
-
-    // Mouse Parallax
-    const targetRotationX = -mouse.y * 0.05;
-    const targetRotationY = mouse.x * 0.05;
-    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, targetRotationX, 0.1);
-    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, targetRotationY, 0.1);
-
-    // Scroll Momentum
-    const scrollY = window.scrollY;
-    const scrollDelta = scrollY - physics.current.lastScroll;
-    physics.current.lastScroll = scrollY;
-    
-    physics.current.velocity += scrollDelta * 0.0005;
-    physics.current.velocity -= physics.current.angle * 2.0 * delta;
-    physics.current.velocity *= 0.95;
-    physics.current.angle += physics.current.velocity;
-    physics.current.angle = THREE.MathUtils.clamp(physics.current.angle, -0.3, 0.3);
-
-    group.current.rotation.z = physics.current.angle;
-    
-    // Idle Breathing
-    group.current.position.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.05 + Math.cos(state.clock.elapsedTime * 0.3) * 0.02;
-  });
-
-  return <group ref={group}>{children}</group>;
+    <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
+      <style>{`
+        @keyframes sparkle-twinkle {
+          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
+          50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
+        }
+      `}</style>
+      {sparkles.map((s, i) => (
+        <img
+          key={`sparkle-${i}`}
+          src="/star.png"
+          alt=""
+          className="absolute"
+          style={{
+            top: s.top,
+            left: s.left,
+            width: s.size,
+            height: s.size,
+            '--sparkle-rotate': `${s.rotate}deg`,
+            animation: `sparkle-twinkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </div>
+  );
 };
 
-// --- 5. The Synced Scene ---
-const SyncedScene = ({ hoveredIndex }) => {
-  const { viewport, size } = useThree();
-  const [positions, setPositions] = useState([]);
-
-  const updatePositions = () => {
-    const container = document.getElementById("experience-container");
-    if (!container) return;
-    const containerRect = container.getBoundingClientRect();
-    const newPositions = [];
-    allExperiences.forEach((_, index) => {
-      const element = document.getElementById(`experience-marker-${index}`);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const relativeYPixel = rect.top - containerRect.top + (rect.height / 2);
-        const unitRatio = viewport.height / size.height;
-        const y3D = (viewport.height / 2) - (relativeYPixel * unitRatio);
-        newPositions.push(y3D);
-      } else {
-        newPositions.push(0);
-      }
-    });
-    setPositions(newPositions);
-  };
+// --- Main Component ---
+const Experience = () => {
+  const containerRef = useRef(null);
+  const fillRef = useRef(null);
+  const tipRef = useRef(null);
+  const heartSentinelRef = useRef(null);
+  const [triggerAnimation, setTriggerAnimation] = useState(false);
+  const [triggerHeart, setTriggerHeart] = useState(false);
 
   useEffect(() => {
-    updatePositions();
-    window.addEventListener("resize", updatePositions);
-    const timeout = setTimeout(updatePositions, 500); 
+    const scrollEl = document.getElementById("app-scroll") || window;
+
+    const onScroll = () => {
+      if (!containerRef.current || !fillRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const start = rect.top - viewH * 0.8;
+      const end = rect.bottom - viewH * 0.4;
+      const progress = Math.min(1, Math.max(0, -start / (end - start)));
+      fillRef.current.style.height = `${progress * 100}%`;
+      if (tipRef.current) {
+        tipRef.current.style.opacity = progress > 0 && progress < 1 ? "1" : "0";
+      }
+
+      // Trigger heart when sentinel scrolls into view
+      if (heartSentinelRef.current) {
+        const heartRect = heartSentinelRef.current.getBoundingClientRect();
+        if (heartRect.top < viewH * 0.9) {
+          setTriggerHeart(true);
+        }
+      }
+    };
+    onScroll();
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-        window.removeEventListener("resize", updatePositions);
-        clearTimeout(timeout);
-    }
-  }, [viewport.height, size.height]);
+      scrollEl.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
 
   return (
-    <Rig>
-      {positions.map((yPos, index) => {
-        const isLast = index === positions.length - 1;
-        
-        return (
-          <React.Fragment key={index}>
-            {/* Top Ceiling String */}
-            {index === 0 && (
-               <PearlString startY={viewport.height / 2 + 1.5} endY={yPos} />
-            )}
+    <div className="relative w-full pb-16 md:pb-24">
+      {/* Sparkles added here with relative wrapper */}
+      <Sparkles />
 
-            <Flower 
-              icon={allExperiences[index].icon} 
-              position={[0, yPos, 0.2]} 
-              isHovered={hoveredIndex === index}
-            />
-            
-            {/* Chain to Next Flower */}
-            {!isLast && positions[index + 1] !== undefined && (
-              <PearlString startY={yPos} endY={positions[index + 1]} />
-            )}
-
-            {/* END DROP: Connector + Teardrop */}
-            {isLast && (
-              <>
-                 {/* Straight connector string */}
-                 <PearlString 
-                    startY={yPos} 
-                    endY={yPos - 0.65} 
-                    curveScale={0.1} 
-                 />
-                 <EndDrop position={[0, yPos - 0.83, 0.2]} />
-              </>
-            )}
-
-          </React.Fragment>
-        );
-      })}
-    </Rig>
-  );
-};
-
-// --- 6. Main Component ---
-const Experience = () => {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
-  return (
-    <>
-      <motion.div initial="hidden" whileInView="show" viewport={{ once: true }}>
-        <p className={`${styles.sectionSubText} text-center`}>My Journey</p>
-        <h2 className={`${styles.sectionHeadText} text-[#455A64] font-serif text-center mb-10`}>Work Experience</h2>
+      <motion.div
+        onViewportEnter={() => setTriggerAnimation(true)}
+        viewport={{ once: true, amount: 0.2 }}
+        className="w-full flex justify-center items-center py-20 md:py-8 mb-0"
+      >
+        <h2
+          className={`
+            font-black
+            text-[14vw]
+            leading-[0.9] uppercase tracking-tighter text-center
+            pointer-events-none select-none
+            drop-shadow-xl
+            ${triggerAnimation ? "animate-hero-fill-fade-white" : "opacity-0"}
+          `}
+          style={{ fontFamily: "'Milkyway', sans-serif" }}
+        >
+          Experience
+        </h2>
       </motion.div>
 
-      <div 
-        id="experience-container"
-        className="relative w-full max-w-5xl mx-auto rounded-[30px] overflow-hidden"
-        style={{ 
-          background: "linear-gradient(135deg, #E0F7FA 0%, #E1F5FE 50%, #F3E5F5 100%)",
-          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.1)" 
-        }}
+      <motion.div
+        className="w-full flex justify-start -ml-16 md:-ml-24"
+        initial={{ x: "-100%", opacity: 0 }}
+        animate={triggerAnimation ? { x: 0, opacity: 1 } : {}}
+        transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
       >
-        {/* NOISE TEXTURE */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0" 
-             style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/stardust.png")` }} 
+        <GlassSphereCanvas />
+      </motion.div>
+
+      <div ref={containerRef} className="relative w-full max-w-6xl mx-auto">
+        {/* Decorative clouds - behind cards */}
+        <img
+          src="/clouds/2.png"
+          alt=""
+          className="absolute pointer-events-none select-none opacity-90 z-0
+            top-[20%] -right-[50%] w-[70%]
+            md:top-[-20%] md:-right-[35%] md:w-[45%]"
         />
+        <img
+          src="/clouds/2.png"
+          alt=""
+          className="absolute pointer-events-none select-none opacity-90 z-0
+            -top-[12%] -left-[10%] w-[70%]
+            md:top-[40%] md:-left-[25%] md:w-[45%]"
+        />
+        <img
+          src="/clouds/3.png"
+          alt=""
+          className="absolute pointer-events-none select-none opacity-90 z-0
+            top-[50%] -right-[10%] w-[70%]
+            md:top-[55%] md:-right-[35%] md:w-[45%]"
+        />
+        {/* Decorative stars — mobile positions first, md: overrides for desktop */}
+        {[
+          { pos: "top-[-17%] left-[3%] md:top-[5%] md:left-[8%]", size: "w-10 md:w-8", rotate: "-12deg" },
+          { pos: "top-[1%] right-[10%] md:top-[15%] md:right-[12%]", size: "w-3 md:w-5", rotate: "0deg" },
+          { pos: "top-[28%] right-[4%] md:top-[30%] md:right-[-5%]", size: "w-4 md:w-6", rotate: "20deg" },
+          { pos: "top-[27%] left-[5%] md:top-[42%] md:left-[12%]", size: "w-3 md:w-4", rotate: "-10deg" },
+          { pos: "-top-[8%] right-[2%] md:-top-[10%] md:right-[0%]", size: "w-5 md:w-6", rotate: "15deg" },
+          { pos: "top-[59%] left-[1%] md:top-[50%] md:left-[3%]", size: "w-5 md:w-7", rotate: "-5deg" },
+          { pos: "top-[59%] right-[10%] md:top-[75%] md:right-[40%]", size: "w-3 md:w-5", rotate: "5deg" },
+          { pos: "top-[95%] right-[3%] md:top-[85%] md:right-[10%]", size: "w-6 md:w-5", rotate: "20deg" },
+          { pos: "top-[100%] left-[5%] md:top-[92%] md:left-[10%]", size: "w-10 md:w-6", rotate: "-20deg" },
+        ].map((star, i) => (
+          <img
+            key={i}
+            src="/star.png"
+            alt=""
+            className={`absolute pointer-events-none select-none z-0 ${star.size} ${star.pos}`}
+            style={{ transform: `rotate(${star.rotate})` }}
+          />
+        ))}
 
-        <div className="absolute top-0 left-0 bottom-0 w-[150px] z-0">
-          <Canvas camera={{ position: [0, 0, 10], fov: 30 }}>
-            <ambientLight intensity={1} />
-            <directionalLight position={[5, 5, 5]} intensity={1.5} />
-            
-            <ContactShadows 
-                position={[0, 0, -0.4]} 
-                opacity={0.4} 
-                scale={20} 
-                blur={2} 
-                far={4}
-                rotation={[Math.PI / 2, 0, 0]} 
+        {/* Center timeline track - desktop only */}
+        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-[12px] z-10">
+          {/* Background track */}
+          <div className="absolute inset-0 bg-white/10 rounded-full" />
+          {/* Scroll-fill bar */}
+          <div
+            ref={fillRef}
+            className="absolute top-0 left-0 w-full rounded-full origin-top"
+            style={{
+              height: "0%",
+              background: "linear-gradient(180deg, #F087FE, #8C52FD, #FED814,  #F844C2)",
+            }}
+          >
+            {/* Glowing tip */}
+            <div
+              ref={tipRef}
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full"
+              style={{
+                opacity: 0,
+                background: "#F844C2",
+              }}
             />
-
-            <SyncedScene hoveredIndex={hoveredIndex} /> 
-          </Canvas>
+          </div>
         </div>
 
-        <div className="flex flex-col relative z-10 py-12">
+        {/* Experience cards */}
+        <div className="relative z-[1] flex flex-col md:gap-16 gap-6 py-8">
           {allExperiences.map((experience, index) => (
-            <div 
-              key={index} 
-              className="flex items-center w-full min-h-[200px]"
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              <div className="w-[150px] flex-shrink-0 flex justify-center items-center">
-                 <div id={`experience-marker-${index}`} className="w-1 h-1 bg-transparent" />
-              </div>
-
-              <div className="flex-1 pr-10 py-4">
-                {/* UPGRADED CARD DESIGN: Clean Glass (No Gold Glow) */}
-                <div 
-                  className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-500
-                    ${hoveredIndex === index 
-                      ? "bg-white/60 border-white/80 shadow-md -translate-y-1" // Clean Lift
-                      : "bg-white/40 border-white/50 shadow-sm" // Glass Default
-                    }
-                  `}
-                >
-                  {/* Decorative Shine Overlay (Subtle) */}
-                  <div className={`absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-transparent opacity-50 pointer-events-none transition-opacity duration-500 ${hoveredIndex === index ? 'opacity-100' : 'opacity-30'}`} />
-
-                  <div className="relative z-10">
-                    <h3 className="text-[#455A64] text-[22px] font-serif font-bold tracking-wide">
-                      {experience.title}
-                    </h3>
-                    <p className="text-[#90A4AE] text-[14px] font-semibold tracking-widest uppercase mb-4 mt-1">
-                      {experience.company_name} | {experience.date}
-                    </p>
-                    <ul className="list-disc ml-4 space-y-2">
-                      {experience.points.map((point, i) => (
-                        <li key={i} className="text-[#546E7A] text-[15px] leading-6 font-medium">
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ExperienceCard key={index} experience={experience} index={index} />
           ))}
         </div>
       </div>
-    </>
+
+      <div ref={heartSentinelRef} />
+      <motion.div
+        className="w-full flex justify-end -mr-16 md:-mr-24"
+        initial={{ x: "100%", opacity: 0 }}
+        animate={triggerHeart ? { x: 0, opacity: 1 } : {}}
+        transition={{ duration: 1, ease: "easeOut" }}
+      >
+        <HeartCanvas />
+      </motion.div>
+    </div>
   );
 };
 
-export default SectionWrapper(Experience, "work");
-
+export default SectionWrapper(Experience, "experience");

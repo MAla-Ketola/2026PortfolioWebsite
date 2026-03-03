@@ -1,276 +1,434 @@
-import React, { useMemo, useRef, useState, useEffect, useId } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useMotionValueEvent,
+  useReducedMotion,
+  useSpring,
+} from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Sparkles } from "@react-three/drei";
+import { Decal, Environment } from "@react-three/drei";
 import {
   EffectComposer,
   Noise,
-  Vignette,
   ChromaticAberration,
 } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { SectionWrapper } from "../hoc";
 
 /* -------------------------------------------
-   3D Flower Component
+   SVG Texture Hook (renders SVG at 256px for crisp decals)
 ------------------------------------------- */
-const Flower3D = ({
+const useSVGTexture = (url) => {
+  const [texture, setTexture] = useState(null);
+  useEffect(() => {
+    if (!url) return;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, 256, 256);
+      const tex = new THREE.CanvasTexture(canvas);
+      setTexture(tex);
+    };
+    img.src = url;
+  }, [url]);
+  return texture;
+};
+
+/* -------------------------------------------
+   Decal position/scale per shape type
+------------------------------------------- */
+const DECAL_CONFIG = {
+  box: { position: [0, 0, 0.46], scale: 0.6 },
+  sphere: { position: [0, 0, 0.56], scale: 0.55 },
+  torus: { position: [0, 0, 0.19], scale: 0.4 },
+  dodecahedron: { position: [0, 0, 0.56], scale: 0.55 },
+  octahedron: { position: [0, 0, 0.61], scale: 0.5 },
+  icosahedron: { position: [0, 0, 0.56], scale: 0.55 },
+  cone: { position: [0, 0.1, 0.35], scale: 0.45 },
+  heart: { position: [0, 0, 0.26], scale: 0.45 },
+  star: { position: [0, 0, 0.2], scale: 0.4 },
+};
+
+/* -------------------------------------------
+   3D Shape Component
+------------------------------------------- */
+const Shape3D = ({
   position,
   color,
-  centerColor,
-  baseScale = 0.9,
-  initialRotation = [0, 0, 0],
+  shapeType,
+  baseScale = 1,
+  icon,
+  bobOffset = 0,
+  entranceDelay = 0,
+  depthFadeRef,
+  shapeIndex = 0,
+  shapeCount = 1,
 }) => {
   const meshRef = useRef();
+  const matRef = useRef();
   const [hovered, setHovered] = useState(false);
-  const currentBaseScale = useRef(0);
+  const texture = useSVGTexture(icon ? `/icons/${icon}.svg` : null);
+  const decal = DECAL_CONFIG[shapeType] || DECAL_CONFIG.sphere;
 
-  const distanceFromCenter = useMemo(() => {
-    return Math.sqrt(position[0] ** 2 + position[1] ** 2);
-  }, [position]);
-
-  const [randomData] = useState(() => ({
-    speed: 0.6 + Math.random() * 0.7,
-    offset: Math.random() * 100,
-    baseRotation: (Math.random() - 0.5) * 0.004,
-    floatSpeed: 1.0 + Math.random() * 0.6,
-    floatOffset: Math.random() * 100,
-  }));
-
-  useEffect(() => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.set(...initialRotation);
-  }, [initialRotation]);
-
-  useEffect(() => {
-    document.body.style.cursor = hovered ? "pointer" : "auto";
-    return () => (document.body.style.cursor = "auto");
-  }, [hovered]);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    const t = state.clock.getElapsedTime();
-
-    const staggerDelay = distanceFromCenter * 0.08;
-    const hasStarted = t > staggerDelay;
-
-    let targetScale = 0;
-    if (hasStarted) {
-      targetScale = hovered ? baseScale * 1.18 : baseScale;
+  const geometry = useMemo(() => {
+    if (shapeType === "heart") {
+      const s = new THREE.Shape();
+      s.moveTo(0.25, 0.25);
+      s.bezierCurveTo(0.25, 0.25, 0.2, 0, 0, 0);
+      s.bezierCurveTo(-0.35, 0, -0.35, 0.35, -0.35, 0.35);
+      s.bezierCurveTo(-0.35, 0.55, -0.15, 0.77, 0.25, 0.95);
+      s.bezierCurveTo(0.6, 0.77, 0.8, 0.55, 0.8, 0.35);
+      s.bezierCurveTo(0.8, 0.35, 0.8, 0, 0.5, 0);
+      s.bezierCurveTo(0.35, 0, 0.25, 0.25, 0.25, 0.25);
+      const geo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.4,
+        bevelEnabled: true,
+        bevelThickness: 0.06,
+        bevelSize: 0.06,
+        bevelSegments: 3,
+      });
+      geo.center();
+      return geo;
     }
+    if (shapeType === "box") {
+      const s = new THREE.Shape();
+      const hw = 0.39,
+        hh = 0.39,
+        r = 0.12;
+      s.moveTo(-hw + r, -hh);
+      s.lineTo(hw - r, -hh);
+      s.quadraticCurveTo(hw, -hh, hw, -hh + r);
+      s.lineTo(hw, hh - r);
+      s.quadraticCurveTo(hw, hh, hw - r, hh);
+      s.lineTo(-hw + r, hh);
+      s.quadraticCurveTo(-hw, hh, -hw, hh - r);
+      s.lineTo(-hw, -hh + r);
+      s.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+      const geo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.78,
+        bevelEnabled: true,
+        bevelThickness: 0.06,
+        bevelSize: 0.06,
+        bevelSegments: 3,
+      });
+      geo.center();
+      return geo;
+    }
+    if (shapeType === "star") {
+      const s = new THREE.Shape();
+      for (let i = 0; i < 10; i++) {
+        const angle = (i * Math.PI) / 5 - Math.PI / 2;
+        const r = i % 2 === 0 ? 0.5 : 0.22;
+        const x = Math.cos(angle) * r;
+        const y = Math.sin(angle) * r;
+        i === 0 ? s.moveTo(x, y) : s.lineTo(x, y);
+      }
+      s.closePath();
+      const geo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.3,
+        bevelEnabled: true,
+        bevelThickness: 0.04,
+        bevelSize: 0.04,
+        bevelSegments: 2,
+      });
+      geo.center();
+      return geo;
+    }
+    return null;
+  }, [shapeType]);
 
-    currentBaseScale.current = THREE.MathUtils.lerp(
-      currentBaseScale.current,
-      targetScale,
-      hasStarted ? 0.08 : 0.1
+  const targetScale = useRef(baseScale);
+  const currentScale = useRef(baseScale);
+  const targetEmissiveIntensity = useRef(0);
+  const currentEmissiveIntensity = useRef(0);
+  const baseRotation = shapeType === "heart" ? Math.PI : 0;
+  const rotationDir = shapeIndex % 2 === 0 ? 1 : -1;
+
+  // Bouncy lift curve (pure function of p; reversible + ends exactly at 0/1).
+  const applyBouncyLift = (p) => {
+    if (p === 0 || p === 1) return p;
+    const amp = 0.22; // overshoot amplitude (~18–20% peak)
+    const c4 = (2 * Math.PI) / 3; // 1–2 bounces
+    return 1 + Math.pow(2, -10 * p) * Math.sin((p * 10 - 0.75) * c4) * amp;
+  };
+
+  useFrame(({ clock }, delta) => {
+    if (!meshRef.current) return;
+    const depthFade = depthFadeRef?.current ?? 0;
+    const order = shapeCount > 1 ? shapeIndex / (shapeCount - 1) : 0;
+    const liftStart = order * 0.75;
+    const liftWindow = 0.5;
+    const liftProgress = Math.min(
+      1,
+      Math.max(0, (depthFade - liftStart) / liftWindow),
+    );
+    const liftBouncy = applyBouncyLift(liftProgress);
+
+    // Bobbing
+    const t = clock.getElapsedTime();
+    const bob = Math.sin(t * 0.8 + bobOffset) * 0.15;
+    const targetY = position[1] + bob + liftBouncy * 2.4;
+    const targetRotZ = baseRotation + liftBouncy * 0.35 * rotationDir;
+    // Damped interpolation for stable motion under uneven scroll deltas.
+    meshRef.current.position.y = THREE.MathUtils.damp(
+      meshRef.current.position.y,
+      targetY,
+      18,
+      delta,
+    );
+    meshRef.current.rotation.z = THREE.MathUtils.damp(
+      meshRef.current.rotation.z,
+      targetRotZ,
+      18,
+      delta,
     );
 
-    const breathing = hasStarted
-      ? Math.sin(t * randomData.speed + randomData.offset) * 0.02
-      : 0;
+    // Entrance animation (scale from 0 with easeOutBack)
+    const entranceT = Math.min(1, Math.max(0, (t - entranceDelay) / 2.0));
+    const c1 = 1.7;
+    const entrance =
+      entranceT === 1
+        ? 1
+        : 1 +
+          (c1 + 1) * Math.pow(entranceT - 1, 3) +
+          c1 * Math.pow(entranceT - 1, 2);
 
-    const finalScale = currentBaseScale.current + breathing;
-    const safeScale = Math.max(0, finalScale);
-    meshRef.current.scale.set(safeScale, safeScale, safeScale);
+    // Smooth scale lerp toward hover target
+    const effectiveBase = baseScale * entrance;
+    targetScale.current = hovered ? effectiveBase * 1.18 : effectiveBase;
+    currentScale.current += (targetScale.current - currentScale.current) * 0.08;
+    const s = currentScale.current;
+    meshRef.current.scale.set(s, s, s);
 
-    meshRef.current.rotation.z += randomData.baseRotation;
-    const floatY =
-      Math.sin(t * randomData.floatSpeed + randomData.floatOffset) * 0.08;
-    meshRef.current.position.y = position[1] + (hasStarted ? floatY : 0);
+    // Smooth emissive glow on hover
+    if (matRef.current) {
+      targetEmissiveIntensity.current = hovered ? 0.4 : 0;
+      currentEmissiveIntensity.current +=
+        (targetEmissiveIntensity.current - currentEmissiveIntensity.current) *
+        0.08;
+      matRef.current.emissiveIntensity = currentEmissiveIntensity.current;
+    }
+  });
+
+  const renderGeometry = () => {
+    if (geometry) return null;
+    switch (shapeType) {
+      case "sphere":
+        return <sphereGeometry args={[0.55, 16, 16]} />;
+      case "torus":
+        return <torusGeometry args={[0.4, 0.18, 16, 32]} />;
+      case "dodecahedron":
+        return <dodecahedronGeometry args={[0.55]} />;
+      case "octahedron":
+        return <octahedronGeometry args={[0.6]} />;
+      case "icosahedron":
+        return <icosahedronGeometry args={[0.55]} />;
+      case "cone":
+        return <coneGeometry args={[0.5, 0.9, 6]} />;
+      default:
+        return <sphereGeometry args={[0.55, 16, 16]} />;
+    }
+  };
+
+  return (
+    <mesh
+      ref={meshRef}
+      position={[position[0], position[1], position[2]]}
+      rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
+      geometry={geometry || undefined}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = "auto";
+      }}
+    >
+      {renderGeometry()}
+      <meshPhysicalMaterial
+        ref={matRef}
+        color={color}
+        emissive={color}
+        emissiveIntensity={0} // Keeps your hover logic working
+        // SURFACE PROPERTIES
+        roughness={0.3} // Lower = Smoother. 1.0 was killing your reflections.
+        metalness={0.1} // Keep low for plastic, high for metallic.
+        // COATING
+        clearcoat={1.0} // Adds a thin reflective layer on top (like car paint)
+        clearcoatRoughness={0.05} // Polished coating
+        // PHYSICS
+        sheen={0.5}
+        sheenRoughness={0.5}
+        sheenColor="#8C52FD"
+        ior={1.5} // Index of Refraction (1.5 is standard plastic)
+        reflectivity={0.5}
+        // RENDER TWEAKS
+        polygonOffset
+        polygonOffsetFactor={-5}
+      />
+      {texture && (
+        <Decal
+          position={decal.position}
+          rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
+          scale={decal.scale}
+          map={texture}
+        ></Decal>
+      )}
+    </mesh>
+  );
+};
+
+/* -------------------------------------------
+   Shapes Marquee Row
+------------------------------------------- */
+/* -------------------------------------------
+   Shapes Marquee Row
+------------------------------------------- */
+/* -------------------------------------------
+   Shapes Marquee Row
+------------------------------------------- */
+const ShapesRow = ({ isMobile, depthFadeRef }) => {
+  const groupRef = useRef();
+
+  const { shapes, totalWidth } = useMemo(() => {
+    const desktopItems = [
+      { type: "heart", color: "#8C52FD", scale: 2, icon: "code" },
+      { type: "box", color: "#FED814", scale: 2.2, icon: "computer" },
+      { type: "sphere", color: "#F087FE", scale: 2.2, icon: "design_services" },
+      { type: "box", color: "#25E995", scale: 2.2, icon: "mobile_code" },
+      { type: "star", color: "#8C52FD", scale: 2.4, icon: "controller" },
+      { type: "torus", color: "#01D6FB", scale: 2.2, icon: "code" },
+      { type: "heart", color: "#25E995", scale: 2, icon: "computer" },
+      { type: "sphere", color: "#8C52FD", scale: 2.2, icon: "design_services" },
+      { type: "box", color: "#01D6FB", scale: 2.2, icon: "mobile_code" },
+      { type: "heart", color: "#FED814", scale: 2, icon: "controller" },
+      { type: "star", color: "#F087FE", scale: 2.2, icon: "code" },
+      { type: "sphere", color: "#01D6FB", scale: 2.2, icon: "computer" },
+    ];
+
+    // 1. Extended list to fix gaps on mobile
+    const mobileItems = [
+      { type: "heart", color: "#25E995", scale: 2, icon: "code" },
+      { type: "box", color: "#FED814", scale: 2.2, icon: "computer" },
+      { type: "sphere", color: "#F087FE", scale: 2.2, icon: "design_services" },
+      { type: "star", color: "#8C52FD", scale: 2.4, icon: "controller" },
+      { type: "heart", color: "#25E995", scale: 2, icon: "code" },
+      { type: "box", color: "#FED814", scale: 2.2, icon: "computer" },
+      { type: "sphere", color: "#F087FE", scale: 2.2, icon: "design_services" },
+      { type: "star", color: "#8C52FD", scale: 2.4, icon: "controller" },
+    ];
+
+    const items = isMobile ? mobileItems : desktopItems;
+
+    const sp = isMobile ? 1.7 : 2.65;
+    const mobileScale = isMobile ? 0.7 : 1;
+    const total = items.length * sp;
+
+    const shapesData = items.map((item, i) => ({
+      ...item,
+      scale: item.scale * mobileScale,
+      x: i * sp,
+    }));
+
+    return { shapes: shapesData, totalWidth: total };
+  }, [isMobile]);
+
+  const yPos = isMobile ? -3 : -3.4;
+
+  // 2. Calculate offset to skip delaying off-screen items (Left side)
+  // On mobile, the first ~2 items are off-screen. On desktop, ~3.
+  const visibleStartIndex = isMobile ? 2 : 6;
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const speed = 0.7;
+    const offset = (clock.getElapsedTime() * speed) % totalWidth;
+    groupRef.current.position.x = -totalWidth / 2 - offset;
+    groupRef.current.position.z = 1;
+    groupRef.current.position.y = yPos;
+    groupRef.current.scale.set(1, 1, 1);
   });
 
   return (
-    <group
-      position={[position[0], position[1], position[2]]}
-      ref={meshRef}
-      onPointerOver={() => setHovered(true)}
-      onPointerOut={() => setHovered(false)}
-    >
-      <mesh position={[0, 0, 0.2]}>
-        <sphereGeometry args={[0.33, 9, 9]} />
-        <meshLambertMaterial color={centerColor ?? "#F6EFE6"} />
-      </mesh>
+    <group ref={groupRef} position={[0, yPos, 1]}>
+      {[0, 1].map((set) =>
+        shapes.map((shape, i) => {
+          // 3. Logic: If item is before the visible start, delay is 0.
+          // Otherwise, stagger them linearly. Set 1 (the loop) comes later.
+          const baseDelay = Math.max(0, (i - visibleStartIndex) * 0.1);
+          const finalDelay = set === 0 ? baseDelay : baseDelay + 1.0;
 
-      {[0, 72, 144, 216, 288].map((angle, i) => {
-        const rad = (angle * Math.PI) / 180;
-        const x = Math.cos(rad) * 0.6;
-        const y = Math.sin(rad) * 0.6;
-        return (
-          <mesh key={i} position={[x, y, 0]} rotation={[0, 0, rad]}>
-            <sphereGeometry args={[0.46, 9, 9]} />
-            <meshLambertMaterial color={color} />
-          </mesh>
-        );
-      })}
+          return (
+            <Shape3D
+              key={`${set}-${i}`}
+              position={[shape.x + set * totalWidth, 0, 0]}
+              color={shape.color}
+              shapeType={shape.type}
+              baseScale={shape.scale}
+              icon={shape.icon}
+              bobOffset={i * 0.6}
+              entranceDelay={finalDelay}
+              depthFadeRef={depthFadeRef}
+              shapeIndex={i + set * shapes.length}
+              shapeCount={shapes.length * 2}
+            />
+          );
+        }),
+      )}
     </group>
   );
 };
 
-/* -------------------------------------------
-   Hero Flowers Manager
-------------------------------------------- */
-const HeroFlowers = ({ isMobile }) => {
-  const activeLayout = 1; 
-  const activeColorPattern = 1; 
+/* --- [Sparkles] --- */
+const SPARKLE_COUNT = 25; // Standard count for this section
 
-  const flowers = useMemo(() => {
-    const palette = ["#f9561b", "#ebff36", "#1328f0", "#fa99dc", "#9267f0"];
-
-    if (isMobile) {
-      const getMobileFlower = (id, x, y, scale, colorIdx, z = 0) => {
-        const color = palette[colorIdx % palette.length];
-        const centerOptions = palette.filter((c) => c !== color);
-        const centerColor = centerOptions[(colorIdx + 2) % centerOptions.length];
-        return {
-          id: `mob-${id}`,
-          position: [x, y, z],
-          color,
-          centerColor,
-          baseScale: scale,
-          initialRotation: [0, 0, 0],
-        };
-      };
-      return [
-        getMobileFlower(1, -2.2, 6.0, 0.7, 0),
-        getMobileFlower(2, 2.5, 5.2, 0.65, 3),
-        getMobileFlower(3, -2.8, 2.2, 0.5, 2),
-        getMobileFlower(4, 3.0, -1.5, 0.55, 1),
-        getMobileFlower(5, -2.5, -5.5, 0.8, 4),
-        getMobileFlower(6, 2.2, -6.5, 0.7, 0),
-        getMobileFlower(7, 0, 8.5, 0.45, 1),
-        getMobileFlower(8, 0, -8.5, 0.5, 2),
-        getMobileFlower(9, -1.5, 4.0, 0.4, 3),
-        getMobileFlower(10, 1.5, -3.5, 0.4, 4),
-      ];
-    }
-
-    const layouts = {
-      1: [
-        { x: -9, y: -5.5, z: 0.5, s: 1.6 },
-        { x: 9, y: 5.5, z: 0.5, s: 1.5 },
-        { x: -10.5, y: 5, z: 0, s: 1.4 },
-        { x: 10.5, y: -5, z: 0, s: 1.4 },
-        { x: -8, y: 1.5, z: 0, s: 1.2 },
-        { x: 6.5, y: -1.5, z: 0, s: 1.2 },
-        { x: -11, y: 0, z: 0, s: 0.85 },
-        { x: 11, y: 0, z: 0, s: 0.85 },
-        { x: -8, y: -2, z: 0, s: 0.9 },
-        { x: 8, y: 2, z: 0, s: 0.9 },
-        { x: -5, y: 6, z: 0, s: 0.75 },
-        { x: 5, y: -5, z: 0, s: 0.75 },
-        { x: 0, y: 5, z: 0, s: 0.75 },
-        { x: 0, y: -6.2, z: 0, s: 0.6 },
-        { x: -3.2, y: 4.2, z: 0, s: 0.6 },
-        { x: 3.2, y: 3.8, z: 0, s: 0.6 },
-        { x: 3.5, y: -4.2, z: 0, s: 0.65 },
-        { x: -4, y: -2.5, z: 0, s: 0.65 },
-        { x: 0, y: -3, z: 0, s: 0.85 },
-      ],
-    };
-
-    const colorMaps = {
-      1: [
-        0, 1, 4, 2, 3, 0, 2, 3, 1, 4, 0, 1, 2, 4, 3, 0, 2, 2, 4, 1, 2, 0, 3, 4,
-        1, 0, 2, 3, 4, 1,
-      ],
-    };
-
-    const chosenPositions = layouts[activeLayout] || layouts[1];
-    const chosenColors = colorMaps[activeColorPattern] || colorMaps[1];
-
-    return chosenPositions.map((pos, i) => {
-      const colorIdx = chosenColors[i];
-      const color = palette[colorIdx];
-      const centerOptions = palette.filter((c) => c !== color);
-      const centerColor = centerOptions[(i * 3) % centerOptions.length];
-
-      return {
-        id: `flower-${i}`,
-        position: [pos.x, pos.y, pos.z],
-        baseScale: pos.s,
-        color,
-        centerColor,
-        initialRotation: [0, 0, i * 0.5],
-      };
-    });
-  }, [isMobile, activeLayout, activeColorPattern]);
+const Sparkles = () => {
+  const sparkles = useMemo(
+    () =>
+      Array.from({ length: SPARKLE_COUNT }, () => ({
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        size: 8 + Math.random() * 12,
+        delay: Math.random() * 5,
+        duration: 3 + Math.random() * 4,
+        rotate: Math.random() * 360,
+      })),
+    [],
+  );
 
   return (
-    <group>
-      {flowers.map((f) => (
-        <Flower3D
-          key={f.id}
-          position={f.position}
-          color={f.color}
-          centerColor={f.centerColor}
-          baseScale={f.baseScale}
-          initialRotation={f.initialRotation}
+    <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
+      <style>{`
+        @keyframes sparkle-twinkle {
+          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
+          50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
+        }
+      `}</style>
+      {sparkles.map((s, i) => (
+        <img
+          key={`sparkle-${i}`}
+          src="/star.png"
+          alt=""
+          className="absolute"
+          style={{
+            top: s.top,
+            left: s.left,
+            width: s.size,
+            height: s.size,
+            "--sparkle-rotate": `${s.rotate}deg`,
+            animation: `sparkle-twinkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
+            opacity: 0,
+          }}
         />
       ))}
-    </group>
-  );
-};
-
-/* -------------------------------------------
-   UI Helper Components
-------------------------------------------- */
-const OffsetButton = ({ href, onClick, children, variant = "primary" }) => {
-  return (
-    <a
-      href={href}
-      onClick={onClick}
-      className="group relative inline-block font-bold text-lg cursor-pointer pointer-events-auto rounded-[18px] outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
-    >
-      <span className="absolute inset-0 rounded-[16px] border-2 border-white bg-transparent translate-x-1.5 translate-y-1.5 transition-transform duration-200 ease-out group-hover:translate-x-1 group-hover:translate-y-1 group-active:translate-x-0 group-active:translate-y-0 opacity-40" />
-      <span
-        className={[
-          "relative block rounded-[16px] border-2 border-white px-8 py-3 transition-transform duration-200 ease-out",
-          "group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-active:translate-x-1.5 group-active:translate-y-1.5",
-          variant === "primary"
-            ? "bg-white text-black"
-            : "bg-transparent text-white hover:bg-white/10",
-        ].join(" ")}
-      >
-        {children}
-      </span>
-    </a>
-  );
-};
-
-const ScrollFlowerIndicator = ({ onClick }) => {
-  const pathId = useId().replace(/:/g, "");
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Scroll to About section"
-      className="group relative h-28 w-28 md:h-32 md:w-32 rounded-full cursor-pointer pointer-events-auto outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
-    >
-      <style>{`
-        @keyframes spinRing { to { transform: rotate(360deg); } }
-        .scrollRing { animation: spinRing 10s linear infinite; transform-origin: 50% 50%; opacity: 0.9; }
-        .group:hover .scrollRing { animation-duration: 6s; opacity: 1; }
-      `}</style>
-
-      <svg
-        viewBox="0 0 120 120"
-        className="absolute inset-0 h-full w-full"
-        aria-hidden="true"
-      >
-        <path
-          id={pathId}
-          d="M60,60 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"
-          fill="none"
-        />
-        <text className="fill-white/80 font-mono text-[9px] tracking-[0.28em] uppercase scrollRing">
-          <textPath href={`#${pathId}`} startOffset="0%">
-            scroll down • scroll down • scroll down •{" "}
-          </textPath>
-        </text>
-      </svg>
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="w-3 h-3 bg-white rounded-full animate-bounce" />
-      </div>
-    </button>
+    </div>
   );
 };
 
@@ -279,8 +437,39 @@ const ScrollFlowerIndicator = ({ onClick }) => {
 ------------------------------------------- */
 const Hero = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const pinRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const heroRef = useRef(null);
+  const depthFadeRef = useRef(0);
+  const [textHidden, setTextHidden] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
+
+  const { scrollYProgress } = useScroll({
+    container: containerReady ? scrollContainerRef : undefined,
+    target: pinRef,
+    offset: ["start start", "end end"],
+  });
+
+  // Smooth the scroll->animation mapping without changing timing/ranges.
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 180,
+    damping: 30,
+    mass: 0.7,
+  });
+
+  const shapesProgress = useTransform(smoothProgress, [0.18, 1], [0, 1]);
+  const textOpacity = useTransform(smoothProgress, [0, 0.18], [1, 0]);
+  const textY = useTransform(smoothProgress, [0, 0.18], [0, 12]);
+  const textBlur = useTransform(
+    smoothProgress,
+    [0, 0.18],
+    ["blur(0px)", "blur(4px)"],
+  );
 
   useEffect(() => {
+    scrollContainerRef.current = document.getElementById("app-scroll");
+    setContainerReady(!!scrollContainerRef.current);
     const media = window.matchMedia("(max-width: 768px)");
     setIsMobile(media.matches);
     const handleMediaChange = (e) => setIsMobile(e.matches);
@@ -288,176 +477,255 @@ const Hero = () => {
     return () => media.removeEventListener("change", handleMediaChange);
   }, []);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      depthFadeRef.current = 0;
+      return;
+    }
+    const unsub = shapesProgress.on("change", (v) => {
+      depthFadeRef.current = Math.min(1, Math.max(0, v));
+    });
+    return () => unsub();
+  }, [reduceMotion, shapesProgress]);
+
+  useMotionValueEvent(smoothProgress, "change", (v) => {
+    if (reduceMotion) {
+      setTextHidden(false);
+      return;
+    }
+    setTextHidden(v >= 0.18);
+  });
+
   const scrollToId = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <section className="relative w-screen h-[100svh] min-h-[640px] left-1/2 -translate-x-1/2 overflow-hidden bg-black">
-      {/* 1. THE 3D CANVAS */}
-      <div className="absolute inset-0 z-0">
-        <Canvas
-          flat
-          dpr={[1, isMobile ? 1.5 : 2]}
-          gl={{ alpha: true, antialias: false }}
-          onCreated={({ gl }) => {
-            gl.setClearColor("#000000", 1);
-          }}
-          camera={{ position: [0, 0, 18], fov: isMobile ? 48 : 36 }}
-        >
-          <ambientLight intensity={1.2} />
-          <directionalLight position={[6, 10, 6]} intensity={2.0} />
+    <div
+      ref={pinRef}
+      className={
+        reduceMotion ? "relative w-full" : "relative w-full h-[250svh]"
+      }
+    >
+      <section
+        ref={heroRef}
+        className={[
+          "hero-depth-fade w-full h-[100svh] min-h-[640px] overflow-hidden bg-black",
+          reduceMotion ? "relative" : "sticky top-0",
+        ].join(" ")}
+      >
+        {/* Sparkles (Custom DOM version) - Z-0 */}
+        <Sparkles />
 
-          <HeroFlowers isMobile={isMobile} />
-          
-          <Sparkles
-            count={12}
-            scale={12}
-            size={2}
-            speed={0.15}
-            opacity={0.05}
-            color="#ffffff"
-          />
-
-          {!isMobile && (
-            <EffectComposer disableNormalPass>
-              <Noise opacity={0.003} />
-              <Vignette eskil={false} offset={0.6} darkness={0.25} />
-              <ChromaticAberration
-                offset={[0.0015, 0.0015]}
-                radialModulation={true}
-                modulationOffset={0.3}
-              />
-            </EffectComposer>
-          )}
-        </Canvas>
-      </div>
-
-      {/* 2. BACKGROUND VIGNETTE */}
-      <div
-        className="absolute inset-0 z-[1] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 45%, rgba(0,0,0,0.10), rgba(0,0,0,0.78) 70%, rgba(0,0,0,0.92) 100%)",
-        }}
-      />
-
-      {/* 3. CONTENT */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pb-20 md:pb-24 pointer-events-none">
-        
-        {/* Glow behind text */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-black/40 blur-[100px] -z-10 rounded-full pointer-events-none" />
-
-        <div className="pointer-events-auto text-center">
-          
-          {/* UPDATED TITLE:
-            - animate-fill-fade class handles the "Hollow -> Solid + Shadow Pop"
-            - Removed inline text-shadow (it's handled in keyframes now)
-          */}
-          <h1
-            className="
-              animate-fill-fade
-              font-sans font-black tracking-tighter
-              text-[11vw] 
-              leading-[0.9] mb-8
-              drop-shadow-2xl
-            "
+        {/* 1. THE 3D CANVAS - Z-0 (Transparent to show sparkles behind) */}
+        <div className="absolute inset-0 z-0">
+          <Canvas
+            flat
+            dpr={[1, isMobile ? 1.5 : 2]}
+            gl={{ alpha: true, antialias: false }}
+            onCreated={({ gl }) => {
+              // Ensure background is transparent so custom DOM sparkles show through
+              gl.setClearColor("#000000", 0);
+            }}
+            camera={{ position: [0, 0, 18], fov: isMobile ? 48 : 36 }}
           >
-            Hi, I’m Marjut
-          </h1>
+            {/* Ambient — lowered for more contrast */}
+            <ambientLight intensity={0.5} />
 
-          {/* TAGS */}
-          <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/70 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
-            <span>UI/UX</span>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <span>Frontend</span>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <span>Creative Dev</span>
-          </div>
+            {/* Key light — warm, from upper-right */}
+            <directionalLight
+              position={[6, 10, 6]}
+              intensity={0.5}
+              color="#fff5e6"
+            />
 
-          {/* BUTTONS */}
-          <div className="animate-fade-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-6 opacity-0">
-            <OffsetButton
-              href="#contact"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToId("contact");
-              }}
-              variant="primary"
-            >
-              Contact Me
-            </OffsetButton>
+            {/* Fill light — cool, from left to lift shadows */}
+            <directionalLight
+              position={[-6, 4, 4]}
+              intensity={0.5}
+              color="#c8d8ff"
+            />
 
-            <OffsetButton
-              href="#projects"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToId("projects");
-              }}
-              variant="primary"
-            >
-              View Work
-            </OffsetButton>
-          </div>
+            {/* HDR environment for realistic reflections on clearcoat */}
+            <Environment
+              preset="warehouse"
+              environmentIntensity={1.5}
+              blur={0.5}
+            />
+
+            <ShapesRow isMobile={isMobile} depthFadeRef={depthFadeRef} />
+
+            {!isMobile && (
+              <EffectComposer disableNormalPass>
+                <Noise opacity={0.003} />
+              </EffectComposer>
+            )}
+          </Canvas>
         </div>
 
-        <div className="absolute bottom-3 md:bottom-6 pointer-events-auto z-20">
-          <ScrollFlowerIndicator onClick={() => scrollToId("about")} />
+        {/* 3. CONTENT */}
+        <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-4 pb-56 md:pb-64 pointer-events-none">
+          {/* Glow behind text */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-black/40 blur-[100px] -z-10 rounded-full pointer-events-none" />
+
+          <motion.div
+            className={[
+              "pointer-events-auto text-center relative",
+              textHidden ? "pointer-events-none" : "",
+            ].join(" ")}
+            style={
+              reduceMotion
+                ? {
+                    opacity: 1,
+                    transform: "translateY(0)",
+                    filter: "blur(0px)",
+                    willChange: "transform, opacity, filter",
+                  }
+                : {
+                    opacity: textOpacity,
+                    y: textY,
+                    filter: textBlur,
+                    willChange: "transform, opacity, filter",
+                  }
+            }
+            aria-hidden={textHidden}
+          >
+            <h1
+              className="
+              animate-hero-fill-fade
+              tracking-tighter
+              text-[11vw]
+              leading-[0.9] mb-8
+            "
+              style={{ fontFamily: "'Milkyway', sans-serif" }}
+            >
+              Hi, I'm Marjut
+            </h1>
+            {/* TAGS */}
+            <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/80 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
+              <span>UI/UX</span>
+              <span className="w-1 h-1 rounded-full bg-white/40" />
+              <span>Frontend</span>
+              <span className="w-1 h-1 rounded-full bg-white/40" />
+              <span>Creative Dev</span>
+            </div>
+
+            {/* BUTTON */}
+            <div className="animate-fade-up delay-300 flex items-center justify-center opacity-0">
+              <a
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToId("contact");
+                }}
+                className="group relative inline-block cursor-pointer pointer-events-auto rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+                tabIndex={textHidden ? -1 : 0}
+              >
+                <span
+                  className="relative block rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#8C52FD] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#F087FE] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
+                  style={{
+                    background:
+                      "linear-gradient(130deg, #F087FE 10%, #FED814 50%, #FED814 70%, #8C52FD 100%)",
+                  }}
+                >
+                  Contact
+                </span>
+              </a>
+            </div>
+
+            {/* SCROLL CUE - Absolute Positioned */}
+            <div
+              className="absolute -bottom-20 left-0 w-full flex justify-center opacity-0 animate-fade-up"
+              style={{ animationDelay: "0.8s" }}
+            >
+              <motion.div
+                animate={{ y: [0, 8, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="text-[#F087FE]"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
+                </svg>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
-      </div>
 
-      {/* 4. THE ABYSS GRADIENT */}
-      <div 
-        className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-b from-transparent to-black pointer-events-none z-[5]" 
-      />
+        {/* 4. THE ABYSS GRADIENT */}
+        <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-b from-transparent to-black pointer-events-none z-[5]" />
 
-      <style>{`
-        /* * FIX: We animate the text-shadow alongside the color fill.
-         * 0%   -> Text is hollow, shadow is transparent (hidden).
-         * 100% -> Text is solid white, shadow is solid blue (visible).
-         * This prevents seeing the shadow "inside" the hollow glass text.
-         */
-        @keyframes fillFade {
-          0% { 
-            color: transparent; 
-            text-shadow: 0px 0px 0 transparent; /* Hidden shadow */
-            opacity: 0; 
-            transform: translateY(20px); 
+        <style>{`
+        .hero-depth-fade { --depth-fade: 0; --text-fade: 0; }
+        .hero-content {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .hero-vignette {
+          opacity: 1;
+          transition: opacity 0.1s linear;
+        }
+
+        @keyframes heroFillFade {
+          0% {
+            color: transparent;
+            text-shadow: 0px 0px 0 transparent;
+            opacity: 0;
+            transform: translateY(20px);
           }
           20% {
             opacity: 1;
             transform: translateY(0);
           }
           50% {
-            color: transparent; /* Still hollow */
-            text-shadow: 0px 0px 0 transparent; /* Still hidden */
+            color: transparent;
+            text-shadow: 0px 0px 0 transparent;
           }
-          100% { 
-            color: #F5F1E8; 
-            text-shadow: 4px 4px 0 #1328f0; /* Shadow POPS in */
+          100% {
+            color: #F5F1E8;
+            text-shadow: 4px 4px 0 #F087FE;
             opacity: 1;
             transform: translateY(0);
           }
         }
-        
-        .animate-fill-fade {
+
+        .animate-hero-fill-fade {
           color: transparent;
-          -webkit-text-stroke: 2px #F5F1E8; 
-          animation: fillFade 1.6s ease-out forwards;
+          -webkit-text-stroke: 2px #F5F1E8;
+          animation: heroFillFade 1.6s ease-out forwards;
         }
 
-        /* General Fade Up */
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .animate-fade-up { animation: fadeUp 0.8s ease-out forwards; }
         .delay-200 { animation-delay: 0.3s; }
         .delay-300 { animation-delay: 0.5s; }
+
+        /* 2D Marquee */
+        @keyframes marquee2d {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .marquee-2d-track { animation: marquee2d 20s linear infinite; }
       `}</style>
-    </section>
+      </section>
+    </div>
   );
 };
 

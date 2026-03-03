@@ -1,21 +1,17 @@
 import { motion } from "framer-motion";
-import { SectionHeader, Panel, Stat, CTAButton } from "../shared/ui";
-import { meta, validateStats, EDGE } from "../content";
-import React from "react";
-
+import { CTAButton } from "../shared/ui";
+import { meta } from "../content";
 import { AK } from "../../../assets";
 
 export default function Hero() {
-  // --- helpers for nicer chips ---
   const roleParts = Array.isArray(meta.role)
     ? meta.role
-    : `${meta.role}`.split(/[;•·|]/).map(s => s.trim()).filter(Boolean);
+    : `${meta.role}`.split(/[;•·|]/).map((s) => s.trim()).filter(Boolean);
 
   const tools = Array.isArray(meta.tools)
     ? meta.tools
-    : `${meta.tools}`.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+    : `${meta.tools}`.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
 
-  // Optional microcopy tweak: turn "+ branding" into "& brand refresh"
   const projectText =
     (meta.project && meta.project.replace(/\+\s*branding/i, "& brand refresh")) ||
     meta.project ||
@@ -23,110 +19,114 @@ export default function Hero() {
 
   return (
     <>
+      {/* Title */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="max-w-5xl mx-auto text-center px-4"
       >
-        <div className="max-w-5xl mx-auto text-center px-4">
-          <SectionHeader label="CASE STUDY" title="Ali-Ketola’s Farm" />
-          {/* removed duplicate max-w-3xl so 65ch wins */}
-          <p className="mx-auto mt-2 max-w-[65ch] font-mono text-[15px] leading-7 text-white/85">
-            Redesigning Ali-Ketola’s Farm from a fragmented experience to a
-            warm, organised, and mobile-first site that reflects the real place
-            and helps visitors get in touch quickly.
-          </p>
-        </div>
+        <p className="text-sm md:text-base text-gray-400 uppercase tracking-widest mb-4">
+          Case Study
+        </p>
+        <h1
+          className="font-black text-white text-5xl md:text-8xl uppercase tracking-tighter leading-[0.9]"
+          style={{ fontFamily: "'Milkyway', sans-serif", textShadow: "4px 4px 0 #F087FE" }}
+        >
+          Ali-Ketola's Farm
+        </h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mx-auto mt-6 max-w-2xl text-lg md:text-xl text-gray-400 leading-relaxed"
+        >
+          Redesigning Ali-Ketola's Farm from a fragmented experience to a warm,
+          organised, and mobile-first site that reflects the real place and helps
+          visitors get in touch quickly.
+        </motion.p>
       </motion.div>
 
-      {/* Image (left) + Meta & Impact (right) */}
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-stretch">
+      {/* Image + Meta side by side */}
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-stretch">
+
         {/* Left: Image */}
         <motion.figure
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="lg:col-span-7"
+          transition={{ duration: 0.5 }}
         >
-          <div className="relative w-full overflow-hidden rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.45)]
-+                 min-h-[300px] lg:min-h-0 lg:h-full">
-            <img
-              src={AK}
-              alt="Ali-Ketola’s Farm website preview on a laptop screen"
-              className="h-full w-full object-cover select-none"
-              loading="lazy"
-            />
+          <div
+            className="w-full h-[280px] md:h-full min-h-[400px] rounded-[20px] md:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden"
+            style={{ backgroundColor: "#F087FE" }}
+          >
+            <div className="relative w-[85%] h-[85%]">
+              <img
+                src={AK}
+                alt="Ali-Ketola's Farm website preview on a laptop screen"
+                className="w-full h-full object-contain drop-shadow-2xl select-none"
+                loading="lazy"
+              />
+            </div>
           </div>
         </motion.figure>
 
-        {/* Right: Panels stacked */}
-        <div className="lg:col-span-5 md:top-24 space-y-5">
+        {/* Right: Spec list card + CTA */}
+        <motion.div
+          className="flex flex-col gap-4"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={{
+            hidden: {},
+            show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+          }}
+        >
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+            className="bg-[#111] rounded-[20px] border border-white/10 overflow-hidden flex-1"
+            style={{ fontFamily: "'Karla', sans-serif" }}
           >
-            <Panel title="/etc/project-meta">
-              {/* ⬇️ Tidy, scannable definition list with chips */}
-              <dl className="divide-y divide-white/10 font-mono text-[14px] text-white/90">
-                <div className="grid grid-cols-[7.5rem_1fr] items-baseline gap-x-6 py-3">
-                  <dt className="text-xs tracking-wide uppercase text-white/55">Project</dt>
-                  <dd>{projectText}</dd>
-                </div>
-
-                <div className="grid grid-cols-[7.5rem_1fr] items-baseline gap-x-6 py-3">
-                  <dt className="text-xs tracking-wide uppercase text-white/55">Role</dt>
-                  <dd className="flex flex-wrap gap-1.5">
-                    {roleParts.map((t) => (
-                      <span key={t} className="rounded-md border border-white/12 px-2 py-0.5 text-sm">
-                        {t}
-                      </span>
-                    ))}
-                  </dd>
-                </div>
-
-                <div className="grid grid-cols-[7.5rem_1fr] items-baseline gap-x-6 py-3">
-                  <dt className="text-xs tracking-wide uppercase text-white/55">Industry</dt>
-                  <dd>{meta.industry}</dd>
-                </div>
-
-                <div className="grid grid-cols-[7.5rem_1fr] items-baseline gap-x-6 py-3">
-                  <dt className="text-xs tracking-wide uppercase text-white/55">Tools</dt>
-                  <dd className="flex flex-wrap gap-1.5">
-                    {tools.map((t) => (
-                      <span key={t} className="rounded-md border border-white/12 px-2 py-0.5 text-sm">
-                        {t}
-                      </span>
-                    ))}
-                  </dd>
-                </div>
-              </dl>
-            </Panel>
-          </motion.div>
-
-          {/* Impact panel (keep commented until ready)
-          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <Panel title="/var/impact">
-              <div className="space-y-3">
-                {validateStats.map((s, i) => (<Stat key={i} {...s} />))}
+            {[
+              { label: "Project", value: projectText, color: "#F087FE" },
+              { label: "Role", value: roleParts.join(" / "), color: "#8C52FD" },
+              { label: "Industry", value: meta.industry, color: "#25E995" },
+              { label: "Tools", value: tools.join(", "), color: "#FED814" },
+            ].map((item, i, arr) => (
+              <div
+                key={item.label}
+                className={`flex flex-col gap-1 px-6 py-5 ${i < arr.length - 1 ? "border-b border-white/10" : ""}`}
+              >
+                <span
+                  className="text-xs font-bold uppercase tracking-widest"
+                  style={{ color: item.color }}
+                >
+                  {item.label}
+                </span>
+                <p className="text-white text-base leading-relaxed">
+                  {item.value}
+                </p>
               </div>
-            </Panel>
+            ))}
           </motion.div>
-          */}
 
-          <div className="mt-5">
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
+          >
             <CTAButton
-              href="https://…"
-              target="_self"
+              href="https://en.ali-ketolantila.fi/"
+              target="_blank"
               label="View Ali-Ketola live website"
               className="w-full justify-center"
             >
               View Live Website
             </CTAButton>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   );
 }
-

@@ -220,6 +220,7 @@ const projects = [
     ],
     image: happytracker,
     source_code_link: null,
+    page: "/happy-tracker",
   },
   {
     name: "Eneme",

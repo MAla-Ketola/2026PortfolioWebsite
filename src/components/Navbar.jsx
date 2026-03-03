@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { styles } from '../styles';
 import { navLinks } from '../constants';
 
@@ -7,6 +8,8 @@ const Navbar = () => {
   const [active, setActive] = useState('');
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,12 +20,29 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleSectionNav = (link) => {
+    setActive(link.title);
+    setToggle(false);
+
+    if (location.pathname === "/") {
+      const section = document.getElementById(link.id);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+      navigate(`/#${link.id}`, { replace: true });
+      return;
+    }
+
+    navigate(`/#${link.id}`);
+  };
+
   return (
     <nav
       className={`
-        w-full flex items-center py-4 fixed top-0 z-50 bg-black 
+        w-full flex items-center py-4 fixed top-0 z-50 bg-black font-milkyway 
         transition-all duration-300
       `}
+      style={{ fontFamily: "Milkyway, monospace" }}
     >
       {/* Inner Container: Matches standard section width (max-w-7xl) */}
       <div className="w-full max-w-7xl mx-auto flex justify-between items-center px-6 sm:px-16">
@@ -36,35 +56,40 @@ const Navbar = () => {
             window.scrollTo(0, 0);
           }}
         >
-          <p className="text-white text-[20px] font-black tracking-tighter uppercase cursor-pointer hover:text-[#ebff36] transition-colors">
-            Marjut
-          </p>
+          <h1 className="text-white text-[25px] tracking-tighter uppercase cursor-pointer hover:text-[#F844C2] transition-colors">
+            M A-K
+          </h1>
         </Link>
 
         {/* DESKTOP LINKS */}
         <ul className="list-none hidden sm:flex flex-row gap-10">
           {navLinks.map((link) => (
-            <li
+            <motion.li
               key={link.id}
               className={`
-                text-[14px] font-mono font-bold uppercase tracking-widest cursor-pointer
-                ${active === link.title ? "text-[#ebff36]" : "text-white"}
-                hover:text-[#ebff36] transition-colors
+                text-[16px] font-bold uppercase tracking-widest cursor-pointer
+                ${active === link.title ? "text-[#F844C2]" : "text-white"}
+                hover:text-[#F844C2] transition-colors
               `}
               onClick={() => setActive(link.title)}
+              whileHover={{ scale: 1.1, rotate: -3 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
             >
-              <a href={`#${link.id}`}>{link.title}</a>
-            </li>
+              <button type="button" onClick={() => handleSectionNav(link)}>
+                {link.title}
+              </button>
+            </motion.li>
           ))}
         </ul>
 
         {/* MOBILE MENU TOGGLE */}
         <div className="sm:hidden flex flex-1 justify-end items-center">
           <button
-            className="text-white font-mono font-bold text-sm tracking-widest uppercase hover:text-[#ebff36] transition-colors"
+            className="text-white font-bold text-sm tracking-widest uppercase hover:text-[#F844C2] transition-colors"
             onClick={() => setToggle(!toggle)}
           >
-            {toggle ? '[CLOSE]' : '[MENU]'}
+            {toggle ? 'CLOSE' : 'MENU'}
           </button>
 
           {/* MOBILE MENU DROPDOWN */}
@@ -78,16 +103,15 @@ const Navbar = () => {
                 <li
                   key={link.id}
                   className={`
-                    font-mono font-bold cursor-pointer text-[24px] uppercase tracking-tighter w-full text-left
-                    ${active === link.title ? "text-[#ebff36]" : "text-white"}
-                    hover:text-[#ebff36] transition-colors
+                    font-bold cursor-pointer text-[24px] uppercase tracking-tighter w-full text-left
+                    ${active === link.title ? "text-[#F844C2]" : "text-white"}
+                    hover:text-[#F844C2] transition-colors
                   `}
                   onClick={() => {
-                    setToggle(!toggle);
-                    setActive(link.title);
+                    handleSectionNav(link);
                   }}
                 >
-                  <a href={`#${link.id}`}>_/{link.title}</a>
+                  <button type="button">{link.title}</button>
                 </li>
               ))}
             </ul>
@@ -99,3 +123,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
