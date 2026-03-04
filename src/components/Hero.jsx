@@ -288,12 +288,6 @@ const Shape3D = ({
 /* -------------------------------------------
    Shapes Marquee Row
 ------------------------------------------- */
-/* -------------------------------------------
-   Shapes Marquee Row
-------------------------------------------- */
-/* -------------------------------------------
-   Shapes Marquee Row
-------------------------------------------- */
 const ShapesRow = ({ isMobile, depthFadeRef }) => {
   const groupRef = useRef();
 
@@ -340,11 +334,11 @@ const ShapesRow = ({ isMobile, depthFadeRef }) => {
     return { shapes: shapesData, totalWidth: total };
   }, [isMobile]);
 
-  const yPos = isMobile ? -3 : -3.4;
+  const yPos = isMobile ? -3 : -2.5;
 
   // 2. Calculate offset to skip delaying off-screen items (Left side)
   // On mobile, the first ~2 items are off-screen. On desktop, ~3.
-  const visibleStartIndex = isMobile ? 2 : 6;
+  const visibleStartIndex = isMobile ? 2 : 3;
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -387,7 +381,7 @@ const ShapesRow = ({ isMobile, depthFadeRef }) => {
 };
 
 /* --- [Sparkles] --- */
-const SPARKLE_COUNT = 25; // Standard count for this section
+const SPARKLE_COUNT = 20; // Standard count for this section
 
 const Sparkles = () => {
   const sparkles = useMemo(
@@ -405,12 +399,6 @@ const Sparkles = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
-      <style>{`
-        @keyframes sparkle-twinkle {
-          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
-          50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
-        }
-      `}</style>
       {sparkles.map((s, i) => (
         <img
           key={`sparkle-${i}`}
@@ -565,7 +553,7 @@ const Hero = () => {
         </div>
 
         {/* 3. CONTENT */}
-        <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-4 pb-56 md:pb-64 pointer-events-none">
+        <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-4 pb-72 md:pb-80 pointer-events-none">
           {/* Glow behind text */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-black/40 blur-[100px] -z-10 rounded-full pointer-events-none" />
 
@@ -604,11 +592,11 @@ const Hero = () => {
             </h1>
             {/* TAGS */}
             <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/80 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
-              <span>UI/UX</span>
+              <span>Frontend Developer</span>
               <span className="w-1 h-1 rounded-full bg-white/40" />
-              <span>Frontend</span>
+              <span>UI/UX Designer</span>
               <span className="w-1 h-1 rounded-full bg-white/40" />
-              <span>Creative Dev</span>
+              <span>Creative Coder</span>
             </div>
 
             {/* BUTTON */}
@@ -623,7 +611,7 @@ const Hero = () => {
                 tabIndex={textHidden ? -1 : 0}
               >
                 <span
-                  className="relative block rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#8C52FD] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#F087FE] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
+                  className="relative block rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#F087FE] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#8C52FD] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
                   style={{
                     background:
                       "linear-gradient(130deg, #F087FE 10%, #FED814 50%, #FED814 70%, #8C52FD 100%)",
@@ -668,62 +656,6 @@ const Hero = () => {
         {/* 4. THE ABYSS GRADIENT */}
         <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-b from-transparent to-black pointer-events-none z-[5]" />
 
-        <style>{`
-        .hero-depth-fade { --depth-fade: 0; --text-fade: 0; }
-        .hero-content {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        .hero-vignette {
-          opacity: 1;
-          transition: opacity 0.1s linear;
-        }
-
-        @keyframes heroFillFade {
-          0% {
-            color: transparent;
-            text-shadow: 0px 0px 0 transparent;
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          20% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          50% {
-            color: transparent;
-            text-shadow: 0px 0px 0 transparent;
-          }
-          100% {
-            color: #F5F1E8;
-            text-shadow: 4px 4px 0 #F087FE;
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-hero-fill-fade {
-          color: transparent;
-          -webkit-text-stroke: 2px #F5F1E8;
-          animation: heroFillFade 1.6s ease-out forwards;
-        }
-
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade-up { animation: fadeUp 0.8s ease-out forwards; }
-        .delay-200 { animation-delay: 0.3s; }
-        .delay-300 { animation-delay: 0.5s; }
-
-        /* 2D Marquee */
-        @keyframes marquee2d {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .marquee-2d-track { animation: marquee2d 20s linear infinite; }
-      `}</style>
       </section>
     </div>
   );

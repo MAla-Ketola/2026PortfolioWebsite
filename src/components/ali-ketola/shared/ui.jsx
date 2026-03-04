@@ -1,10 +1,5 @@
 import { motion } from "framer-motion";
 
-/* Homepage palette for accent colors */
-const palette = [
-  "#25E995", "#F087FE", "#8C52FD", "#FED814", "#01D6FB", "#F844C2",
-];
-
 /* Gradient border style matching homepage buttons */
 const buttonBorderColors = ["#F844C2", "#F087FE", "#FED814"];
 const gradientBorderStyle = {

@@ -127,7 +127,7 @@ const extraCard = {
 const allExperiences = [...experiences, extraCard];
 
 // --- Sticker with company icon ---
-const Sticker = ({ sticker, icon, color }) => (
+const Sticker = ({ sticker, icon }) => (
  /* <div
     className="w-14 h-14 rounded-full flex items-center justify-center"
     style={{ backgroundColor: color }}
@@ -166,7 +166,7 @@ const ExperienceCard = ({ experience, index }) => {
   return (
     <div className={`flex items-center w-full mb-12 md:mb-0 ${isLeft ? "md:flex-row" : "md:flex-row-reverse"}`}>
       {/* Card side */}
-      <div className="flex-1 flex justify-center md:justify-end md:pr-0">
+      <div className="flex-1 flex justify-start md:justify-end md:pr-0">
         <motion.div
           initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -190,7 +190,7 @@ const ExperienceCard = ({ experience, index }) => {
           >
             {/* Sticker + date row */}
             <div className="flex items-center gap-4 mb-4">
-              <Sticker sticker={sticker} icon={experience.icon} color={color} />
+              <Sticker sticker={sticker} icon={experience.icon} />
               <span className="text-sm font-bold uppercase tracking-widest" style={{ color }}>
                 {experience.date}
               </span>
@@ -252,12 +252,6 @@ const Sparkles = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
-      <style>{`
-        @keyframes sparkle-twinkle {
-          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
-          50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
-        }
-      `}</style>
       {sparkles.map((s, i) => (
         <img
           key={`sparkle-${i}`}
@@ -424,7 +418,7 @@ const Experience = () => {
         </div>
 
         {/* Experience cards */}
-        <div className="relative z-[1] flex flex-col md:gap-16 gap-6 py-8">
+        <div className="relative z-[1] flex flex-col md:gap-16 gap-6 py-8 border-l-2 border-white/10 pl-4 md:border-l-0 md:pl-0">
           {allExperiences.map((experience, index) => (
             <ExperienceCard key={index} experience={experience} index={index} />
           ))}

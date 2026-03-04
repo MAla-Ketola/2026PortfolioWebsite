@@ -1,24 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { styles } from '../styles';
 import { navLinks } from '../constants';
 
 const Navbar = () => {
   const [active, setActive] = useState('');
   const [toggle, setToggle] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setScrolled(scrollTop > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const handleSectionNav = (link) => {
     setActive(link.title);
@@ -38,10 +27,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`
-        w-full flex items-center py-4 fixed top-0 z-50 bg-black font-milkyway 
-        transition-all duration-300
-      `}
+      className="w-full flex items-center py-4 bg-black font-milkyway"
       style={{ fontFamily: "Milkyway, monospace" }}
     >
       {/* Inner Container: Matches standard section width (max-w-7xl) */}

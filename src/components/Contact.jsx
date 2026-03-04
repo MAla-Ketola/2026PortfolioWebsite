@@ -7,53 +7,6 @@ import * as THREE from "three";
 
 import { SectionWrapper } from "../hoc";
 
-/* --- Sparkles (light-bg version) --- */
-const SPARKLE_COUNT = 10;
-
-const Sparkles = () => {
-  const sparkles = useMemo(
-    () =>
-      Array.from({ length: SPARKLE_COUNT }, () => ({
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        size: 8 + Math.random() * 14,
-        delay: Math.random() * 5,
-        duration: 3 + Math.random() * 4,
-        rotate: Math.random() * 360,
-      })),
-    [],
-  );
-
-  return (
-    <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
-      <style>{`
-        @keyframes contact-sparkle {
-          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
-          50% { opacity: 0.5; transform: scale(1) rotate(var(--sparkle-rotate)); }
-        }
-      `}</style>
-      {sparkles.map((s, i) => (
-        <img
-          key={`contact-sparkle-${i}`}
-          src="/star.png"
-          alt=""
-          className="absolute"
-          style={{
-            top: s.top,
-            left: s.left,
-            width: s.size,
-            height: s.size,
-            "--sparkle-rotate": `${s.rotate}deg`,
-            animation: `contact-sparkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
-            opacity: 0,
-            filter: "brightness(0.6) sepia(1) hue-rotate(240deg) saturate(3)",
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 /* --- Floating 3D Heart --- */
 const heartGeometry = (() => {
   const s = new THREE.Shape();
@@ -108,7 +61,7 @@ const HeartCanvas = () => (
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <pointLight position={[-3, -3, 2]} intensity={0.5} color="#F087FE" />
         <pointLight position={[3, 3, 2]} intensity={0.5} color="#FED814" />
-        <HeartShape />
+        {/*<HeartShape />*/}
         <Environment preset="warehouse" />
       </Suspense>
     </Canvas>
@@ -243,7 +196,7 @@ const Contact = () => {
             >
               Let&apos;s<br />
               Get In<br />
-              Touch!
+              Touch!{'\u2060'}✨
             </h2>
             <div className="flex-shrink-0 mb-8 sm:mb-6 md:mb-4">
               <HeartCanvas />
@@ -342,7 +295,7 @@ const Contact = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#8C52FD] transition-all duration-200 hover:opacity-90 active:opacity-80 hover:border-[#F087FE] hover:-translate-y-1 hover:rotate-[-6deg] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:rotate-0"
+                className="group relative rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#F087FE] transition-all duration-200 hover:opacity-90 active:opacity-80 hover:border-[#8C52FD] hover:-translate-y-1 hover:rotate-[-6deg] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:rotate-0"
                 style={{
                   background: "linear-gradient(130deg, #F087FE 10%, #FED814 50%, #FED814 70%, #8C52FD 100%)",
                 }}
@@ -359,22 +312,6 @@ const Contact = () => {
       </div>
 
       {/* Title fill-fade animation (dark text version, matching About) */}
-      <style>{`
-        @keyframes contactFillFade {
-          0% { color: transparent; text-shadow: 0px 0px 0 transparent; opacity: 0; transform: translateY(20px); }
-          20% { opacity: 1; transform: translateY(0); }
-          50% { color: transparent; text-shadow: 0px 0px 0 transparent; }
-          100% { color: #000000; text-shadow: 4px 4px 0 #F087FE; opacity: 1; transform: translateY(0); }
-        }
-        .animate-contact-fill-fade {
-          color: transparent;
-          -webkit-text-stroke: 2px #000000;
-          animation: contactFillFade 1.6s ease-out forwards;
-        }
-        .contact-field:focus-within > span {
-          color: #8C52FD;
-        }
-      `}</style>
     </div>
   );
 };

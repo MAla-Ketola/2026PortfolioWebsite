@@ -253,6 +253,49 @@ p {
   animation: heroFillFadeWhite 1.6s ease-out forwards;
 }
 
+/* --- Shared sparkle animations --- */
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
+  50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
+}
+@keyframes contact-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
+  50% { opacity: 0.5; transform: scale(1) rotate(var(--sparkle-rotate)); }
+}
+
+/* --- Marquee --- */
+@keyframes marquee2d {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-2d-track { animation: marquee2d 20s linear infinite; }
+
+/* --- Hero section utility classes --- */
+.hero-depth-fade { --depth-fade: 0; --text-fade: 0; }
+.hero-content { opacity: 1; transform: translateY(0); }
+.hero-vignette { opacity: 1; transition: opacity 0.1s linear; }
+
+/* --- Fill-fade dark variant (About / Contact titles) --- */
+@keyframes fillFadeDark {
+  0% { color: transparent; text-shadow: 0px 0px 0 transparent; opacity: 0; transform: translateY(20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  50% { color: transparent; text-shadow: 0px 0px 0 transparent; }
+  100% { color: #000000; text-shadow: 4px 4px 0 #F087FE; opacity: 1; transform: translateY(0); }
+}
+.animate-hero-fill-fade-about {
+  color: transparent;
+  -webkit-text-stroke: 2px #000000;
+  animation: fillFadeDark 1.6s ease-out forwards;
+}
+.animate-contact-fill-fade {
+  color: transparent;
+  -webkit-text-stroke: 2px #000000;
+  animation: fillFadeDark 1.6s ease-out forwards;
+}
+
+/* --- Contact form --- */
+.contact-field:focus-within > span { color: #8C52FD; }
+
 @keyframes flash {
   0% { opacity: 0 }
   30% { opacity: 1 }

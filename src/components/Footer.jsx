@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -33,9 +33,33 @@ const rowShapes = [
 ];
 
 const FooterShapesRow = () => {
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1440,
+  );
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const targetShapeSize = useMemo(() => {
+    if (viewportWidth >= 1024) return 150;
+    if (viewportWidth >= 640) return 112;
+    return 80;
+  }, [viewportWidth]);
+
+  const visibleShapes = useMemo(() => {
+    const neededCount = Math.ceil(viewportWidth / targetShapeSize) + 1;
+    return Array.from(
+      { length: neededCount },
+      (_, index) => rowShapes[index % rowShapes.length],
+    );
+  }, [viewportWidth, targetShapeSize]);
+
   const generateValidColors = useCallback(() => {
     const newColors = [];
-    for (let i = 0; i < rowShapes.length; i++) {
+    for (let i = 0; i < visibleShapes.length; i++) {
       const previousColor = newColors[i - 1];
       const availablePalette = palette.filter(
         (color) => color !== previousColor,
@@ -45,9 +69,13 @@ const FooterShapesRow = () => {
       newColors.push(randomColor);
     }
     return newColors;
-  }, []);
+  }, [visibleShapes.length]);
 
   const [currentColors, setCurrentColors] = useState(generateValidColors());
+
+  useEffect(() => {
+    setCurrentColors(generateValidColors());
+  }, [generateValidColors]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -68,7 +96,12 @@ const FooterShapesRow = () => {
     if (type === "heart") {
       return (
         <svg
-          style={{ width: "100%", height: "100%", ...transitionStyle }}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "block",
+            ...transitionStyle,
+          }}
           viewBox="0 0 24 24"
           fill={color}
           aria-hidden
@@ -81,7 +114,12 @@ const FooterShapesRow = () => {
     if (type === "star") {
       return (
         <svg
-          style={{ width: "100%", height: "100%", ...transitionStyle }}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "block",
+            ...transitionStyle,
+          }}
           viewBox="0 0 24 24"
           fill={color}
           aria-hidden
@@ -94,6 +132,7 @@ const FooterShapesRow = () => {
     const style = {
       width: "100%",
       height: "100%",
+      display: "block",
       backgroundColor: color,
       ...transitionStyle,
     };
@@ -106,16 +145,12 @@ const FooterShapesRow = () => {
 
   return (
     <div className="w-full overflow-hidden bg-black">
-      <div className="flex flex-row justify-center">
-        {rowShapes.map((shape, i) => {
-          let displayClass = "block";
-          if (i >= 6) displayClass = "hidden md:block";
-          if (i >= 9) displayClass = "hidden lg:block";
-
+      <div className="flex flex-row justify-start">
+        {visibleShapes.map((shape, i) => {
           return (
             <div
               key={`${shape.type}-${i}`}
-              className={`flex items-center justify-center ${displayClass} w-20 h-20 sm:w-28 sm:h-28 lg:h-[150px] lg:w-[150px]`}
+              className="flex w-20 shrink-0 aspect-square items-center justify-center leading-none sm:w-28 lg:w-[150px]"
             >
               {renderShape(shape.type, currentColors[i], i)}
             </div>

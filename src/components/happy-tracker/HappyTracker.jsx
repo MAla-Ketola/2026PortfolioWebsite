@@ -6,7 +6,7 @@ import Nav from "./sections/Nav";
 import Define from "./sections/Define";
 import DesignProcess from "./sections/DesignProcess";
 import Implement from "./sections/Implement";
-import ResultsReflections from "./sections/Results&Reflections";
+import ResultsReflections from "./sections/ResultsReflections";
 
 function HappyTracker() {
   return (

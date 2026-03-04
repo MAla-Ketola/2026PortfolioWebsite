@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { styles } from "../styles";
 import { github } from "../assets";
 import { SectionWrapper } from "../hoc";
 import { projects } from "../constants";
-import { fadeIn, textVariant } from "../utils/motion";
 
 /* --- [Palette Definition] --- */
 const palette = [
@@ -166,7 +164,7 @@ const ProjectCard = ({
 
             <div className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-8">
               {page ? (
-                <GlowButton href={page}>VIEW CASE</GlowButton>
+                <GlowButton href={page}>VIEW</GlowButton>
               ) : live_demo ? (
                 <GlowButton href={live_demo} external>
                   VIEW
@@ -237,12 +235,6 @@ const Sparkles = ({ isMobile }) => {
 
   return (
     <>
-      <style>{`
-        @keyframes sparkle-twinkle {
-          0%, 100% { opacity: 0; transform: scale(0.3) rotate(var(--sparkle-rotate)); }
-          50% { opacity: 0.8; transform: scale(1) rotate(var(--sparkle-rotate)); }
-        }
-      `}</style>
       {sparkles.map((s, i) => (
         <img
           key={`sparkle-${i}`}

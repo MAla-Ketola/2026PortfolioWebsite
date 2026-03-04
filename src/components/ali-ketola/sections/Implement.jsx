@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { SectionHeader, CTAButton, ShapeBullet } from "../shared/ui";
 import { buildPoints } from "../content";
 import AKmobileShowcase from "../../../assets/ali-ketola/mobilePhoto.png";
-import AKtrainingSnippet from "../../../assets/ali-ketola/Training video GIF.gif";
+import AKtrainingSnippetWebm from "../../../assets/ali-ketola/Training-video.webm";
+import AKtrainingSnippetMp4 from "../../../assets/ali-ketola/Training-video.mp4";
 
 const buildHighlights = [
   "Translated final mockups into a fully functional Wix site using repeatable strips for services and accommodations, enabling easy content updates across languages.",
@@ -117,12 +118,18 @@ export default function Implement() {
         className="mt-10"
       >
         <div className="w-full overflow-hidden rounded-[20px] shadow-lg">
-          <img
-            src={AKtrainingSnippet}
-            alt="Snippet of the client training video in the Wix editor"
+          <video
             className="w-full h-auto object-cover select-none"
-            loading="lazy"
-          />
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-label="Snippet of the client training video in the Wix editor"
+          >
+            <source src={AKtrainingSnippetWebm} type="video/webm" />
+            <source src={AKtrainingSnippetMp4} type="video/mp4" />
+          </video>
         </div>
         <figcaption className="mt-3 text-center text-base text-white/80">
           Snippet of a training video for the client

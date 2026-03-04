@@ -6,8 +6,8 @@ const About = () => {
   const [triggerAnimation, setTriggerAnimation] = useState(false);
 
   return (
-    <div 
-      // FULL WIDTH HACK: w-screen + negative margins/translate forces this div 
+    <div
+      // FULL WIDTH HACK: w-screen + negative margins/translate forces this div
       // to stretch to the viewport edges, ignoring the parent SectionWrapper's max-width.
       className="w-screen relative left-1/2 -translate-x-1/2 bg-[#fdfbf7] pb-24 sm:pb-32 rounded-[50px]"
     >
@@ -35,7 +35,6 @@ const About = () => {
 
       {/* Inner Container to keep content constrained and centered */}
       <div className="max-w-7xl mx-auto px-6 sm:px-16 pt-10">
-        
         {/* HEADER */}
         <motion.div
           onViewportEnter={() => setTriggerAnimation(true)}
@@ -59,7 +58,6 @@ const About = () => {
 
         {/* CONTENT LAYOUT */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20">
-          
           {/* LEFT COLUMN: TEXT CONTENT */}
           {/* Added 'text-center' to center the paragraph text as requested */}
           <div className="flex-1 flex flex-col items-center md:items-center text-center max-w-xl">
@@ -68,58 +66,66 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8">
-              I started in hospitality and graduated in Games Technology. Now I’m focused on my own projects—exploring UX, AI, and game-inspired interactions—with the aim of stepping into a junior software developer role.
-              <br /><br />
-              Tools I’m using: <strong>React</strong>, <strong>Three.js</strong>, <strong>JavaScript</strong> plus <strong>C#/C++</strong> from my Games Tech degree.
+              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8"
+            >
+              I started my career in hospitality before moving into tech and
+              graduating in Games Technology. Since then, I’ve been building my
+              own projects and exploring UX, AI, and game-inspired interactions.{" "}
+              <br />
+              <br />
+              I enjoy creating experiences that feel engaging, intuitive, and
+              creative. My current tools include <strong style={{color:"#8C52FD"}}>React</strong>, <strong style={{color:"#8C52FD"}}>Three.js</strong>, and{" "}
+              <strong style={{color:"#8C52FD"}}>JavaScript</strong>, along with <strong style={{color:"#8C52FD"}}>C#</strong> and <strong style={{color:"#8C52FD"}}>C++</strong> from my degree. <br />
+              <br />
+              I’m now working towards stepping into a junior software developer
+              role, where I can keep growing and bring a user-focused, creative
+              approach to development.
             </motion.p>
 
             {/* TAGS */}
             <div className="flex items-center justify-center gap-4 font-black text-xl uppercase tracking-wider text-black">
-              {["WEB", "✨", "MOBILE", "✨", "UX"].map((tag, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
-                  className={tag === "✨" ? "text-2xl text-[#FED814]" : ""}
-                >
-                  {tag}
-                </motion.span>
-              ))}
+              {["WEB", "✨", "MOBILE", "✨", "UX", "✨", "GAMES"].map(
+                (tag, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
+                    className={tag === "✨" ? "text-2xl text-[#FED814]" : ""}
+                  >
+                    {tag}
+                  </motion.span>
+                ),
+              )}
             </div>
           </div>
 
           {/* RIGHT COLUMN: PORTRAIT IMAGE */}
-          <div className="flex-shrink-0">
-            {/* Light Purple Container (#F087FE) */}
+          <motion.div
+            className="flex-shrink-0"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            whileHover={{
+              y: -6,
+              rotate: -2,
+              transition: { duration: 0.25, ease: "easeOut" },
+            }}
+          >
             <div className="w-[300px] h-[400px] md:w-[350px] md:h-[450px] bg-[#25E995] rounded-[40px] overflow-hidden relative flex items-end justify-center shadow-lg">
-              <img 
-                src="/portrait2.png" 
-                alt="Self Portrait" 
+              <img
+                src="/portrait2.png"
+                alt="Self Portrait"
                 className="w-full h-full object-cover drop-shadow-2xl"
               />
             </div>
-          </div>
-
+          </motion.div>
         </div>
       </div>
-      
+
       {/* Keyframes for the title animation */}
-      <style>{`
-        @keyframes fillFade {
-          0% { color: transparent; text-shadow: 0px 0px 0 transparent; opacity: 0; transform: translateY(20px); }
-          20% { opacity: 1; transform: translateY(0); }
-          50% { color: transparent; text-shadow: 0px 0px 0 transparent; }
-          100% { color: #000000; text-shadow: 4px 4px 0 #F087FE; opacity: 1; transform: translateY(0); }
-        }
-        .animate-hero-fill-fade-about {
-          color: transparent;
-          -webkit-text-stroke: 2px #000000;
-          animation: fillFade 1.6s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };

@@ -111,7 +111,7 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
         <mesh
           ref={meshRef}
           onPointerOver={(e) => { e.stopPropagation(); setHover(true); }}
-          onPointerOut={(e) => setHover(false)}
+          onPointerOut={() => setHover(false)}
           scale={hovered ? hoverScale : baseScale}
           rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
           geometry={geometry || undefined}
@@ -151,7 +151,10 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
 // --- 3. The Scene ---
 const TechScene = ({ isMobile }) => {
   const radius = isMobile ? 2 : 4.5;
-  const positions = useMemo(() => getCylinderPositions(technologies.length, radius, isMobile), [radius], isMobile);
+  const positions = useMemo(
+    () => getCylinderPositions(technologies.length, radius, isMobile),
+    [radius, isMobile],
+  );
   
   const palette = ["#8C52FD", "#FED814", "#F087FE", "#25E995", "#01D6FB"];
   const shapeTypes = ["sphere", "star", "torus", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"];
@@ -290,19 +293,6 @@ const Tech = () => {
         </Canvas>
       </div>
 
-      <style>{`
-@keyframes fillFadeWhite {
-          0% { color: transparent; text-shadow: 0px 0px 0 transparent; opacity: 0; transform: translateY(20px); }
-          20% { opacity: 1; transform: translateY(0); }
-          50% { color: transparent; text-shadow: 0px 0px 0 transparent; }
-          100% { color: #ffffff; text-shadow: 4px 4px 0 #F087FE; opacity: 1; transform: translateY(0); }
-        }
-        .animate-hero-fill-fade-white {
-          color: transparent;
-          -webkit-text-stroke: 2px #ffffff;
-          animation: fillFadeWhite 1.6s ease-out forwards;
-        }
-      `}</style>
     </section>
   );
 };

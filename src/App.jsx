@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { View } from "@react-three/drei";
 import { About, Contact, Experience, Footer, Navbar, Works, Hero, Tech } from "./components";
-import AliKetolaPage from "./pages/AliKetolaPage";
-import HappyTrackerPage from "./pages/HappyTrackerPage";
+const AliKetolaPage = React.lazy(() => import("./pages/AliKetolaPage"));
+const HappyTrackerPage = React.lazy(() => import("./pages/HappyTrackerPage"));
 
 const HashScrollHandler = () => {
   const { hash, pathname } = useLocation();
@@ -32,6 +32,11 @@ const HashScrollHandler = () => {
 
 const App = () => {
   const mainRef = React.useRef(null);
+  const routeFallback = (
+    <div className="min-h-[40vh] grid place-items-center text-sm tracking-wide text-white/70">
+      Loading...
+    </div>
+  );
 
   return (
     <BrowserRouter>
@@ -66,8 +71,22 @@ const App = () => {
                 </div>
               </>
             } />
-            <Route path="/ali-ketola" element={<AliKetolaPage />} />
-            <Route path="/happy-tracker" element={<HappyTrackerPage />} />
+            <Route
+              path="/ali-ketola"
+              element={
+                <React.Suspense fallback={routeFallback}>
+                  <AliKetolaPage />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="/happy-tracker"
+              element={
+                <React.Suspense fallback={routeFallback}>
+                  <HappyTrackerPage />
+                </React.Suspense>
+              }
+            />
           </Routes>
         </div>
       </div>

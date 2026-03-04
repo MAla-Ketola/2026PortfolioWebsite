@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { CTAButton } from "../shared/ui";
 import { meta } from "../content";
-import heroGif from "../../../assets/Happy Tracker/Hero GIF.gif";
+import heroVideoWebm from "../../../assets/Happy Tracker/Hero-video.webm";
+import heroVideoMp4 from "../../../assets/Happy Tracker/Hero-video.mp4";
 
 export default function Hero() {
   const roleParts = Array.isArray(meta.role)
@@ -56,11 +57,18 @@ export default function Hero() {
             className="w-full h-[280px] md:h-full min-h-[400px] rounded-[20px] md:rounded-[32px] shadow-2xl overflow-hidden flex items-center justify-center"
             style={{ backgroundColor: "#01D6FB" }}
           >
-            <img
-              src={heroGif}
-              alt="Happy Tracker app demo"
+            <video
               className="w-full h-full object-contain"
-            />
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-label="Happy Tracker app demo"
+            >
+              <source src={heroVideoWebm} type="video/webm" />
+              <source src={heroVideoMp4} type="video/mp4" />
+            </video>
           </div>
         </motion.figure>
 
