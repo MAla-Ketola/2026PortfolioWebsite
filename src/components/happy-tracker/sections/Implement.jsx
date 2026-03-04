@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { SectionHeader, ShapeBullet } from "../shared/ui";
-import fix1Img from "../../../assets/Happy Tracker/Fixes/10.png";
-import fix2Img from "../../../assets/Happy Tracker/Fixes/11.png";
+import fix1Img from "../../../assets/Happy Tracker/Fixes/10.webp";
+import fix2Img from "../../../assets/Happy Tracker/Fixes/11.webp";
 
 const implementationHighlights = [
   "Built the core loop for a vertical slice: create habit, mark completion, edit details, and delete.",

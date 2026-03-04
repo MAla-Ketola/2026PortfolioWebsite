@@ -2,12 +2,12 @@ import React from "react";
 import { motion } from "framer-motion";
 import { SectionHeader, CTAButton } from "../shared/ui";
 
-import AKsolutionBranding from "../../../assets/ali-ketola/solutions1/1.png";
-import AKsolutionNavigation from "../../../assets/ali-ketola/solutions1/2.png";
-import AKsolutionHierarchy from "../../../assets/ali-ketola/solutions1/3.png";
-import AKsolutionReadability from "../../../assets/ali-ketola/solutions1/4.png";
-import AKsolutionListings from "../../../assets/ali-ketola/solutions1/5.png";
-import AKprototypeShowcase from "../../../assets/ali-ketola/laptop&phone.png";
+import AKsolutionBranding from "../../../assets/ali-ketola/solutions1/1.webp";
+import AKsolutionNavigation from "../../../assets/ali-ketola/solutions1/2.webp";
+import AKsolutionHierarchy from "../../../assets/ali-ketola/solutions1/3.webp";
+import AKsolutionReadability from "../../../assets/ali-ketola/solutions1/4.webp";
+import AKsolutionListings from "../../../assets/ali-ketola/solutions1/5.webp";
+import AKprototypeShowcase from "../../../assets/ali-ketola/laptop&phone.webp";
 
 const solutions = [
   {

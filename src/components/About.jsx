@@ -116,7 +116,7 @@ const About = () => {
           >
             <div className="w-[300px] h-[400px] md:w-[350px] md:h-[450px] bg-[#25E995] rounded-[40px] overflow-hidden relative flex items-end justify-center shadow-lg">
               <img
-                src="/portrait2.png"
+                src="/portrait2.webp"
                 alt="Self Portrait"
                 className="w-full h-full object-cover drop-shadow-2xl"
               />

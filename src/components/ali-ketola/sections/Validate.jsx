@@ -2,10 +2,10 @@ import { useRef, useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { SectionHeader, Card } from "../shared/ui";
 import { feedback, analyticsCards, wentWellText, opportunitiesText, lessonsFull } from "../content";
-import analytics1 from "../../../assets/ali-ketola/analytics1.png";
-import analytics2 from "../../../assets/ali-ketola/analytics2.png";
-import analytics3 from "../../../assets/ali-ketola/analytics3.png";
-import analytics4 from "../../../assets/ali-ketola/analytics4.png";
+import analytics1 from "../../../assets/ali-ketola/analytics1.webp";
+import analytics2 from "../../../assets/ali-ketola/analytics2.webp";
+import analytics3 from "../../../assets/ali-ketola/analytics3.webp";
+import analytics4 from "../../../assets/ali-ketola/analytics4.webp";
 
 function CountUpStat({ stat, color }) {
   const ref = useRef(null);

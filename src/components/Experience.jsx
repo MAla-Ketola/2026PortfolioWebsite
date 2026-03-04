@@ -255,7 +255,7 @@ const Sparkles = () => {
       {sparkles.map((s, i) => (
         <img
           key={`sparkle-${i}`}
-          src="/star.png"
+          src="/star.webp"
           alt=""
           className="absolute"
           style={{
@@ -385,7 +385,7 @@ const Experience = () => {
         ].map((star, i) => (
           <img
             key={i}
-            src="/star.png"
+            src="/star.webp"
             alt=""
             className={`absolute pointer-events-none select-none z-0 ${star.size} ${star.pos}`}
             style={{ transform: `rotate(${star.rotate})` }}

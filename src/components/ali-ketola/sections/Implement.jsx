@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { SectionHeader, CTAButton, ShapeBullet } from "../shared/ui";
 import { buildPoints } from "../content";
-import AKmobileShowcase from "../../../assets/ali-ketola/mobilePhoto.png";
+import AKmobileShowcase from "../../../assets/ali-ketola/mobilePhoto.webp";
 import AKtrainingSnippetWebm from "../../../assets/ali-ketola/Training-video.webm";
 import AKtrainingSnippetMp4 from "../../../assets/ali-ketola/Training-video.mp4";
 

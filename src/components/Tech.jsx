@@ -208,7 +208,7 @@ const Sparkles = ({ isMobile }) => {
       {sparkles.map((s, i) => (
         <img
           key={`sparkle-${i}`}
-          src="/star.png"
+          src="/star.webp"
           alt=""
           className="absolute"
           style={{

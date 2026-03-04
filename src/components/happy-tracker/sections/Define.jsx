@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { SectionHeader, Card, ShapeBullet } from "../shared/ui";
 import { problems, targetUsers, competitiveHighlights, insights } from "../content";
-import habiticaImg from "../../../assets/Happy Tracker/Habitica.jpeg";
-import productiveImg from "../../../assets/Happy Tracker/Productive.jpeg";
+import habiticaImg from "../../../assets/Happy Tracker/Habitica.webp";
+import productiveImg from "../../../assets/Happy Tracker/Productive.webp";
 
 const palette = [
   "#25E995",
