@@ -5,6 +5,7 @@ import { View } from "@react-three/drei";
 import { About, Contact, Experience, Footer, Navbar, Works, Hero, Tech } from "./components";
 const AliKetolaPage = React.lazy(() => import("./pages/AliKetolaPage"));
 const HappyTrackerPage = React.lazy(() => import("./pages/HappyTrackerPage"));
+const ProjectsPage = React.lazy(() => import("./pages/ProjectsPage"));
 
 const HashScrollHandler = () => {
   const { hash, pathname } = useLocation();
@@ -84,6 +85,14 @@ const App = () => {
               element={
                 <React.Suspense fallback={routeFallback}>
                   <HappyTrackerPage />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <React.Suspense fallback={routeFallback}>
+                  <ProjectsPage />
                 </React.Suspense>
               }
             />

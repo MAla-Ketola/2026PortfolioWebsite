@@ -13,6 +13,7 @@ import {
   cplusplus,
   unity,
   unreal,
+  AKlogoW,
   AK,
   stepnbloom,
   happytracker,
@@ -23,6 +24,8 @@ import {
   rootodyssey,
   oldschool,
   platformer,
+  PRGlogo,
+  portfolio2026,
 } from "../assets";
 
 export const navLinks = [
@@ -116,7 +119,27 @@ const experiences = [
     date: "2025",
     points: [],
   },
+    {
+    title: "Ali-Ketola Farm Freelance Web Design",
+    company_name:
+      "Ali-Ketola Farm",
+    icon: AKlogoW,
+    iconBg: "#E6DEDD",
+    date: "2025",
+    points: ["Redesigned a farm business website in Wix to make the content clearer, mobile-friendly, and easier to navigate.",],
+  },
+   {
+    title: "Alt Zone - UI Developer & UX Designer",
+    company_name:
+      "Psyche's Royale Gaming ry",
+    icon: PRGlogo,
+    iconBg: "#E6DEDD",
+    date: "2025 - Present",
+    points: ["Building features in Unity (C#), translating UX ideas into polished UI flows. I design and iterate interaction patterns (states, feedback, navigation) and implement them with maintainable, script-driven UI logic in collaboration with the team."],
+  },
 ];
+
+
 
 const projects = [
   {
@@ -168,8 +191,8 @@ const projects = [
     page: "/ali-ketola",
   },
   {
-    name: "Portfolio",
-    description: "My portfolio website, you're probably looking at right now.",
+    name: "Portfolio 2026",
+    description: "My portfolio website 2026, which you are currently viewing!",
     tags: [
       {
         name: "react",
@@ -184,8 +207,8 @@ const projects = [
         color: "pink-text-gradient",
       },
     ],
-    image: portfolio,
-    source_code_link: "https://github.com/MAla-Ketola/PortfolioWebsite",
+    image: portfolio2026,
+    source_code_link: "https://github.com/MAla-Ketola/2026PortfolioWebsite",
   },
   {
     name: "Step & Bloom",
@@ -221,6 +244,26 @@ const projects = [
     image: happytracker,
     source_code_link: null,
     page: "/happy-tracker",
+  },
+  {
+    name: "Portfolio 2025",
+    description: "My portfolio website 2025. Built with React, Tailwind, and Three.js.",
+    tags: [
+      {
+        name: "react",
+        color: "blue-text-gradient",
+      },
+      {
+        name: "threejs",
+        color: "green-text-gradient",
+      },
+      {
+        name: "tailwind",
+        color: "pink-text-gradient",
+      },
+    ],
+    image: portfolio,
+    source_code_link: "https://github.com/MAla-Ketola/PortfolioWebsite",
   },
   {
     name: "Eneme",

@@ -7,79 +7,7 @@ import * as THREE from "three";
 
 import { SectionWrapper } from "../hoc";
 
-/* --- Floating 3D Heart --- */
-const heartGeometry = (() => {
-  const s = new THREE.Shape();
-  s.moveTo(0.25, 0.25);
-  s.bezierCurveTo(0.25, 0.25, 0.2, 0, 0, 0);
-  s.bezierCurveTo(-0.35, 0, -0.35, 0.35, -0.35, 0.35);
-  s.bezierCurveTo(-0.35, 0.55, -0.15, 0.77, 0.25, 0.95);
-  s.bezierCurveTo(0.6, 0.77, 0.8, 0.55, 0.8, 0.35);
-  s.bezierCurveTo(0.8, 0.35, 0.8, 0, 0.5, 0);
-  s.bezierCurveTo(0.35, 0, 0.25, 0.25, 0.25, 0.25);
-  const geo = new THREE.ExtrudeGeometry(s, {
-    depth: 0.4,
-    bevelEnabled: true,
-    bevelThickness: 0.06,
-    bevelSize: 0.06,
-    bevelSegments: 3,
-  });
-  geo.center();
-  return geo;
-})();
-
-const HeartShape = () => {
-  const meshRef = useRef();
-
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.4;
-    }
-  });
-
-  return (
-    <Float speed={2} rotationIntensity={0.3} floatIntensity={1.5}>
-      <mesh ref={meshRef} geometry={heartGeometry} scale={2.2} rotation={[-0.1, -0.3, Math.PI]} position={[0, 0.4, 0]}>
-        <meshPhysicalMaterial
-          color="#F844C2"
-          emissive="#F844C2"
-          emissiveIntensity={0.15}
-          roughness={0.2}
-          metalness={0.4}
-          reflectivity={0.5}
-        />
-      </mesh>
-    </Float>
-  );
-};
-
-const HeartCanvas = () => (
-  <div className="w-[70px] h-[70px] sm:w-[100px] sm:h-[100px] md:w-[160px] md:h-[160px]">
-    <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-      <Suspense fallback={null}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={1} />
-        <pointLight position={[-3, -3, 2]} intensity={0.5} color="#F087FE" />
-        <pointLight position={[3, 3, 2]} intensity={0.5} color="#FED814" />
-        {/*<HeartShape />*/}
-        <Environment preset="warehouse" />
-      </Suspense>
-    </Canvas>
-  </div>
-);
-
 const socials = [
-  {
-    name: "Instagram",
-    href: "https://www.instagram.com/marjutalaketola",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-      </svg>
-    ),
-  },
   {
     name: "LinkedIn",
     href: "https://www.linkedin.com/in/marjut-ala-ketola-1b818b323",
@@ -100,7 +28,7 @@ const socials = [
   },
   {
     name: "YouTube",
-    href: "https://www.youtube.com/@marjutalaketola",
+    href: "https://www.youtube.com/channel/UCAJYpF6s48YSJ2yJtVtH9_w",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -181,7 +109,7 @@ const Contact = () => {
         {/* Left: Title + email + socials */}
         <motion.div
           onViewportEnter={() => setTriggerAnimation(true)}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0 }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -199,7 +127,6 @@ const Contact = () => {
               Touch!{'\u2060'}✨
             </h2>
             <div className="flex-shrink-0 mb-8 sm:mb-6 md:mb-4">
-              <HeartCanvas />
             </div>
           </div>
 

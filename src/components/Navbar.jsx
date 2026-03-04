@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { navLinks } from '../constants';
@@ -8,6 +8,25 @@ const Navbar = () => {
   const [toggle, setToggle] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    const observers = [];
+    navLinks.forEach((link) => {
+      const el = document.getElementById(link.id);
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActive(link.title);
+          else setActive((prev) => (prev === link.title ? '' : prev));
+        },
+        { threshold: 0.3 }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [location.pathname]);
 
   const handleSectionNav = (link) => {
     setActive(link.title);
@@ -27,7 +46,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className="w-full flex items-center py-4 bg-black font-milkyway"
+      className="w-full flex items-center py-4 bg-black font-milkyway sticky top-0 z-50"
       style={{ fontFamily: "Milkyway, monospace" }}
     >
       {/* Inner Container: Matches standard section width (max-w-7xl) */}
@@ -37,9 +56,16 @@ const Navbar = () => {
         <Link
           to="/"
           className="flex items-center gap-2"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
             setActive("");
-            window.scrollTo(0, 0);
+            setToggle(false);
+            if (location.pathname === "/") {
+              const hero = document.getElementById("hero");
+              if (hero) hero.scrollIntoView({ behavior: "smooth" });
+            } else {
+              navigate("/");
+            }
           }}
         >
           <h1 className="text-white text-[25px] tracking-tighter uppercase cursor-pointer hover:text-[#F844C2] transition-colors">

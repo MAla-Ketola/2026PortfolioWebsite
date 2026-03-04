@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect, Suspense } from "react";
 import {
   motion,
   useScroll,
@@ -68,6 +68,7 @@ const Shape3D = ({
   depthFadeRef,
   shapeIndex = 0,
   shapeCount = 1,
+  visibleStartIndex = 0,
 }) => {
   const meshRef = useRef();
   const matRef = useRef();
@@ -160,7 +161,11 @@ const Shape3D = ({
   useFrame(({ clock }, delta) => {
     if (!meshRef.current) return;
     const depthFade = depthFadeRef?.current ?? 0;
-    const order = shapeCount > 1 ? shapeIndex / (shapeCount - 1) : 0;
+    const effectiveCount = shapeCount - 2 * visibleStartIndex;
+    const clampedIndex =
+      Math.min(shapeCount - 1 - visibleStartIndex, Math.max(visibleStartIndex, shapeIndex)) -
+      visibleStartIndex;
+    const order = effectiveCount > 1 ? clampedIndex / (effectiveCount - 1) : 0;
     const liftStart = order * 0.75;
     const liftWindow = 0.5;
     const liftProgress = Math.min(
@@ -372,6 +377,7 @@ const ShapesRow = ({ isMobile, depthFadeRef }) => {
               depthFadeRef={depthFadeRef}
               shapeIndex={i + set * shapes.length}
               shapeCount={shapes.length * 2}
+              visibleStartIndex={visibleStartIndex}
             />
           );
         }),
@@ -421,10 +427,47 @@ const Sparkles = () => {
 };
 
 /* -------------------------------------------
+   Hero Dots Loader
+------------------------------------------- */
+const HeroShimmer = ({ visible }) => (
+  <div
+    className="absolute inset-0 pointer-events-none flex items-start justify-center transition-opacity duration-500"
+    style={{ zIndex: 5, opacity: visible ? 1 : 0 }}
+    aria-hidden="true"
+  >
+    <style>{`
+      @keyframes bounce-dot {
+        0%, 80%, 100% { transform: translateY(0); }
+        40%            { transform: translateY(-14px); }
+      }
+    `}</style>
+    <div className="flex items-center gap-3" style={{ marginTop: "calc(50svh + 150px)" }}>
+      {["#F087FE", "#8C52FD", "#FED814"].map((color, i) => (
+        <div
+          key={i}
+          className="w-3 h-3 rounded-full"
+          style={{
+            backgroundColor: color,
+            animation: `bounce-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+/* Mounts after Suspense resolves — signals scene is ready */
+const HeroSceneReady = ({ onReady }) => {
+  useEffect(() => { onReady(); }, []);
+  return null;
+};
+
+/* -------------------------------------------
    Main Hero Section
 ------------------------------------------- */
 const Hero = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
   const reduceMotion = useReducedMotion();
   const pinRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -508,6 +551,7 @@ const Hero = () => {
 
         {/* 1. THE 3D CANVAS - Z-0 (Transparent to show sparkles behind) */}
         <div className="absolute inset-0 z-0">
+          <HeroShimmer visible={!heroLoaded} />
           <Canvas
             flat
             dpr={[1, isMobile ? 1.5 : 2]}
@@ -535,28 +579,29 @@ const Hero = () => {
               color="#c8d8ff"
             />
 
-            {/* HDR environment for realistic reflections on clearcoat */}
-            <Environment
-              preset="warehouse"
-              environmentIntensity={1.5}
-              blur={0.5}
-            />
+            <Suspense fallback={null}>
+              {/* HDR environment for realistic reflections on clearcoat */}
+              <Environment
+                preset="warehouse"
+                environmentIntensity={1.5}
+                blur={0.5}
+              />
 
-            <ShapesRow isMobile={isMobile} depthFadeRef={depthFadeRef} />
+              <ShapesRow isMobile={isMobile} depthFadeRef={depthFadeRef} />
 
-            {!isMobile && (
-              <EffectComposer disableNormalPass>
-                <Noise opacity={0.003} />
-              </EffectComposer>
-            )}
+              {!isMobile && (
+                <EffectComposer disableNormalPass>
+                  <Noise opacity={0.003} />
+                </EffectComposer>
+              )}
+
+              <HeroSceneReady onReady={() => setHeroLoaded(true)} />
+            </Suspense>
           </Canvas>
         </div>
 
         {/* 3. CONTENT */}
         <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-4 pb-72 md:pb-80 pointer-events-none">
-          {/* Glow behind text */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-black/40 blur-[100px] -z-10 rounded-full pointer-events-none" />
-
           <motion.div
             className={[
               "pointer-events-auto text-center relative",
@@ -592,9 +637,9 @@ const Hero = () => {
             </h1>
             {/* TAGS */}
             <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/80 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
-              <span>Frontend Developer</span>
+              <span>Frontend</span>
               <span className="w-1 h-1 rounded-full bg-white/40" />
-              <span>UI/UX Designer</span>
+              <span>UI/UX</span>
               <span className="w-1 h-1 rounded-full bg-white/40" />
               <span>Creative Coder</span>
             </div>
@@ -611,7 +656,7 @@ const Hero = () => {
                 tabIndex={textHidden ? -1 : 0}
               >
                 <span
-                  className="relative block rounded-full px-12 py-4 font-bold text-lg tracking-widest uppercase text-black border-2 border-[#F087FE] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#8C52FD] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
+                  className="relative block rounded-full px-8 py-3 text-base md:px-12 md:py-4 md:text-lg font-bold tracking-widest uppercase text-black border-2 border-[#F087FE] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#8C52FD] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
                   style={{
                     background:
                       "linear-gradient(130deg, #F087FE 10%, #FED814 50%, #FED814 70%, #8C52FD 100%)",

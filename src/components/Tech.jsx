@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, Decal, Float, OrbitControls, Environment } from "@react-three/drei";
@@ -227,11 +227,48 @@ const Sparkles = ({ isMobile }) => {
 };
 
 /* -------------------------------------------------------------------------- */
+/* DOTS LOADER                                                                */
+/* -------------------------------------------------------------------------- */
+const TechShimmer = ({ visible }) => (
+  <div
+    className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center transition-opacity duration-500"
+    style={{ opacity: visible ? 1 : 0 }}
+    aria-hidden="true"
+  >
+    <style>{`
+      @keyframes bounce-dot {
+        0%, 80%, 100% { transform: translateY(0); }
+        40%            { transform: translateY(-14px); }
+      }
+    `}</style>
+    <div className="flex items-center gap-3">
+      {["#F087FE", "#8C52FD", "#FED814"].map((color, i) => (
+        <div
+          key={i}
+          className="w-3 h-3 rounded-full"
+          style={{
+            backgroundColor: color,
+            animation: `bounce-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+/* Mounts after Suspense resolves — signals textures are ready */
+const SceneReady = ({ onReady }) => {
+  useEffect(() => { onReady(); }, []);
+  return null;
+};
+
+/* -------------------------------------------------------------------------- */
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
 const Tech = () => {
   const [triggerAnimation, setTriggerAnimation] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [sceneLoaded, setSceneLoaded] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -253,7 +290,7 @@ const Tech = () => {
       {/* --- TITLE OVERLAY --- */}
       <motion.div 
           onViewportEnter={() => setTriggerAnimation(true)}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0 }}
           // Changed z-10 to z-20 to sit above Canvas
           className="absolute top-12 left-0 w-full z-20 flex justify-center pointer-events-none"
         >
@@ -273,22 +310,26 @@ const Tech = () => {
 
       {/* 3D Canvas - Changed z-0 to z-10 so it sits ABOVE sparkles but BELOW title */}
       <div className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing">
+        <TechShimmer visible={!sceneLoaded} />
         <Canvas camera={{ position: [0, 0, 14], fov: 50 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
-          
+
           <Environment preset="city" />
 
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false} 
-            autoRotate 
+          <OrbitControls
+            enableZoom={false}
+            enablePan={false}
+            autoRotate
             autoRotateSpeed={1.5}
-            minPolarAngle={Math.PI / 2 - 0.5} 
-            maxPolarAngle={Math.PI / 2 + 0.5} 
+            minPolarAngle={Math.PI / 2 - 0.5}
+            maxPolarAngle={Math.PI / 2 + 0.5}
           />
 
-          <TechScene isMobile={isMobile} />
+          <Suspense fallback={null}>
+            <TechScene isMobile={isMobile} />
+            <SceneReady onReady={() => setSceneLoaded(true)} />
+          </Suspense>
 
         </Canvas>
       </div>

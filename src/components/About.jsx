@@ -38,7 +38,7 @@ const About = () => {
         {/* HEADER */}
         <motion.div
           onViewportEnter={() => setTriggerAnimation(true)}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0 }}
           className="relative z-10 w-full flex justify-center items-center py-16 md:py-24 mb-8"
         >
           <h2

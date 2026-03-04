@@ -276,7 +276,7 @@ const Works = () => {
       
       <motion.div 
         onViewportEnter={() => setTriggerAnimation(true)}
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0 }}
         className="w-full flex justify-center items-center py-20 md:py-32 mb-10"
       >
         <h2

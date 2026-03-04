@@ -118,13 +118,13 @@ const extraCard = {
   company_name: "Ready to build scalable applications and creative web experiences.",
   icon: experiences[0].icon,
   iconBg: "#383E56",
-  date: "2024 - Present",
+  date: "2026",
   points: [
     "Looking forward to new challenges and opportunities.",
   ],
 };
 
-const allExperiences = [...experiences, extraCard];
+const allExperiences = [...experiences];
 
 // --- Sticker with company icon ---
 const Sticker = ({ sticker, icon }) => (
@@ -321,7 +321,7 @@ const Experience = () => {
 
       <motion.div
         onViewportEnter={() => setTriggerAnimation(true)}
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0 }}
         className="w-full flex justify-center items-center py-20 md:py-8 mb-0"
       >
         <h2

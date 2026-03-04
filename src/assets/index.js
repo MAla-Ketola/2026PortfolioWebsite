@@ -18,6 +18,7 @@ import unreal from "./tech/unreal.webp";
 
 import uwe from "./company/uwe.webp";
 import coursera from "./company/coursera.webp";
+import PRGlogo from "./company/PRG Logo.png";
 
 import LittleLemon from "./littlelemon.webp";
 import AK from "./AK.webp";
@@ -28,6 +29,7 @@ import portfolio from "./portfolio.webp";
 import rootodyssey from "./RootOdyssey.webp";
 import oldschool from "./oldschool.webp";
 import platformer from "./platformer.webp";
+import portfolio2026 from "./portfolio2026.png";
 
 import AKproblem1 from "./ali-ketola/AKproblem1.webp";
 import AKproblem2 from "./ali-ketola/AKproblem2.webp";
@@ -110,4 +112,6 @@ export {
   AKwireframeHome,
   AKwireframeServices,
   AKwireframeAccommodation,
+  PRGlogo,
+  portfolio2026
 };
