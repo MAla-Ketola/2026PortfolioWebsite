@@ -118,14 +118,24 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
         >
           {renderGeometry()}
           
-          <meshPhysicalMaterial
-            color={color}
-            emissive={color}
-            emissiveIntensity={hovered ? 0.8 : 0.15}
-            roughness={0.2}
-            metalness={0.4}
-            reflectivity={0.5}
-          />
+          {isMobile ? (
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={hovered ? 0.8 : 0.15}
+              roughness={0.2}
+              metalness={0.4}
+            />
+          ) : (
+            <meshPhysicalMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={hovered ? 0.8 : 0.15}
+              roughness={0.2}
+              metalness={0.4}
+              reflectivity={0.5}
+            />
+          )}
 
           {texture && (
             <Decal
@@ -157,7 +167,9 @@ const TechScene = ({ isMobile }) => {
   );
   
   const palette = ["#8C52FD", "#FED814", "#F087FE", "#25E995", "#01D6FB"];
-  const shapeTypes = ["sphere", "star", "torus", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"];
+  const shapeTypes = isMobile
+    ? ["sphere", "star", "sphere", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"]
+    : ["sphere", "star", "torus", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"];
 
   // --- POSITION OFFSET ---
   // With a taller canvas (120vh), the center (0,0) is lower.
@@ -269,6 +281,8 @@ const Tech = () => {
   const [triggerAnimation, setTriggerAnimation] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sceneLoaded, setSceneLoaded] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -277,9 +291,25 @@ const Tech = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setCanvasReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     // UPDATED: min-h increased to 120vh to prevent bottom cut-off
-    <section className="relative w-full min-h-[120vh] overflow-hidden bg-black flex flex-col items-center justify-center">
+    <section ref={sectionRef} className="relative w-full min-h-[120vh] overflow-hidden bg-black flex flex-col items-center justify-center">
       
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1a1a1a_0%,_#000000_70%)] opacity-50 z-0 pointer-events-none" />
@@ -292,13 +322,13 @@ const Tech = () => {
           onViewportEnter={() => setTriggerAnimation(true)}
           viewport={{ once: true, amount: 0 }}
           // Changed z-10 to z-20 to sit above Canvas
-          className="absolute top-12 left-0 w-full z-20 flex justify-center pointer-events-none"
+          className="absolute top-12 left-0 w-full z-20 flex flex-col items-center pointer-events-none"
         >
           <h2
             className={`
-              font-black 
-              text-[14vw] 
-              leading-[0.9] uppercase tracking-tighter text-center 
+              font-black
+              text-[14vw]
+              leading-[0.9] uppercase tracking-tighter text-center
               drop-shadow-xl
               ${triggerAnimation ? "animate-hero-fill-fade-white" : "opacity-0"}
             `}
@@ -306,12 +336,20 @@ const Tech = () => {
           >
             Tech
           </h2>
+          <div className={`mt-2 md:-mt-2 transition-opacity duration-700 ${triggerAnimation ? "opacity-100" : "opacity-0"}`}>
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/25 bg-white/5 backdrop-blur-sm text-xs text-white/80 tracking-widest uppercase">
+              <span aria-hidden>←</span>
+              drag to explore
+              <span aria-hidden>→</span>
+            </span>
+          </div>
       </motion.div>
 
       {/* 3D Canvas - Changed z-0 to z-10 so it sits ABOVE sparkles but BELOW title */}
       <div className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing">
-        <TechShimmer visible={!sceneLoaded} />
-        <Canvas camera={{ position: [0, 0, 14], fov: 50 }}>
+        <TechShimmer visible={canvasReady && !sceneLoaded} />
+        {canvasReady && (
+        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 14], fov: 50 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
 
@@ -332,6 +370,7 @@ const Tech = () => {
           </Suspense>
 
         </Canvas>
+        )}
       </div>
 
     </section>

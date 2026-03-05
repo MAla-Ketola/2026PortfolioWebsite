@@ -11,7 +11,12 @@ const HashScrollHandler = () => {
   const { hash, pathname } = useLocation();
 
   React.useEffect(() => {
-    if (!hash) return;
+    const container = document.getElementById("app-scroll");
+
+    if (!hash) {
+      if (container) container.scrollTo({ top: 0, behavior: "instant" });
+      return;
+    }
 
     const id = hash.replace("#", "");
 

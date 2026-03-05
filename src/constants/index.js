@@ -166,7 +166,7 @@ const projects = [
   {
     name: "Ali-Ketola",
     description:
-      "Wix design-to-build for a countryside venue—new structure, landing pages, and consistent brand palette to make exploring spaces easier.",
+      "Wix design-to-build for a countryside venue new structure, landing pages, and consistent brand palette to make exploring spaces easier.",
     tags: [
       {
         name: "wix",

@@ -2,10 +2,45 @@ import { motion } from "framer-motion";
 import { fadeIn } from "../../../utils/motion";
 import { SectionHeader } from "../shared/ui";
 
+const SECTION_ORDER = ["define", "design-process", "implement", "results"];
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const idx = SECTION_ORDER.indexOf(id);
+  const unloaded = SECTION_ORDER.slice(0, idx).flatMap((sid) => {
+    const sec = document.getElementById(sid);
+    return sec
+      ? Array.from(sec.querySelectorAll("img")).filter((img) => !img.complete)
+      : [];
+  });
+
+  const doScroll = () => el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  if (unloaded.length === 0) {
+    doScroll();
+    return;
+  }
+
+  Promise.all(
+    unloaded.map(
+      (img) =>
+        new Promise((resolve) => {
+          const loader = new Image();
+          loader.onload = resolve;
+          loader.onerror = resolve;
+          loader.src = img.src;
+          img.addEventListener("load", resolve, { once: true });
+          setTimeout(resolve, 2000);
+        })
+    )
+  ).then(doScroll);
+}
+
 const stickers = [
   "/Stickers/2.png",
   "/Stickers/1.png",
-  "/Stickers/3.png",
   "/Stickers/4.png",
   "/Stickers/5.png",
 ];
@@ -41,6 +76,7 @@ export default function Nav() {
           <motion.a
             key={s.id}
             href={`#${s.id}`}
+            onClick={(e) => { e.preventDefault(); scrollToSection(s.id); }}
             className="group block w-[31%] lg:w-[19%]"
             variants={fadeIn("up", "spring", i * 0.08, 0.55)}
             whileHover={{ y: -6 }}

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { SectionHeader, Card } from "../shared/ui";
 import { designSteps, wireframeNotes, userTesting } from "../content";
 import lofiImg from "../../../assets/Happy Tracker/lofi-wireframe.webp";
-import hifiImg from "../../../assets/Happy Tracker/hifi-wireframe.webp";
+import hifiImg from "../../../assets/Happy Tracker/hifi-wireframe.png";
 import prototypeImg from "../../../assets/Happy Tracker/prototype.webp";
 import problem1Img from "../../../assets/Happy Tracker/Problems/7.webp";
 import problem2Img from "../../../assets/Happy Tracker/Problems/8.webp";

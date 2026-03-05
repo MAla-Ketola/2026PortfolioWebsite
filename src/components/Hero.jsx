@@ -69,6 +69,7 @@ const Shape3D = ({
   shapeIndex = 0,
   shapeCount = 1,
   visibleStartIndex = 0,
+  isMobile = false,
 }) => {
   const meshRef = useRef();
   const matRef = useRef();
@@ -257,27 +258,34 @@ const Shape3D = ({
       }}
     >
       {renderGeometry()}
-      <meshPhysicalMaterial
-        ref={matRef}
-        color={color}
-        emissive={color}
-        emissiveIntensity={0} // Keeps your hover logic working
-        // SURFACE PROPERTIES
-        roughness={0.3} // Lower = Smoother. 1.0 was killing your reflections.
-        metalness={0.1} // Keep low for plastic, high for metallic.
-        // COATING
-        clearcoat={1.0} // Adds a thin reflective layer on top (like car paint)
-        clearcoatRoughness={0.05} // Polished coating
-        // PHYSICS
-        sheen={0.5}
-        sheenRoughness={0.5}
-        sheenColor="#8C52FD"
-        ior={1.5} // Index of Refraction (1.5 is standard plastic)
-        reflectivity={0.5}
-        // RENDER TWEAKS
-        polygonOffset
-        polygonOffsetFactor={-5}
-      />
+      {isMobile ? (
+        <meshStandardMaterial
+          ref={matRef}
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.25}
+          roughness={0.2}
+          metalness={0.4}
+        />
+      ) : (
+        <meshPhysicalMaterial
+          ref={matRef}
+          color={color}
+          emissive={color}
+          emissiveIntensity={0}
+          roughness={0.3}
+          metalness={0.1}
+          clearcoat={1.0}
+          clearcoatRoughness={0.05}
+          sheen={0.5}
+          sheenRoughness={0.5}
+          sheenColor="#8C52FD"
+          ior={1.5}
+          reflectivity={0.5}
+          polygonOffset
+          polygonOffsetFactor={-5}
+        />
+      )}
       {texture && (
         <Decal
           position={decal.position}
@@ -378,6 +386,7 @@ const ShapesRow = ({ isMobile, depthFadeRef }) => {
               shapeIndex={i + set * shapes.length}
               shapeCount={shapes.length * 2}
               visibleStartIndex={visibleStartIndex}
+              isMobile={isMobile}
             />
           );
         }),
@@ -387,12 +396,11 @@ const ShapesRow = ({ isMobile, depthFadeRef }) => {
 };
 
 /* --- [Sparkles] --- */
-const SPARKLE_COUNT = 20; // Standard count for this section
-
-const Sparkles = () => {
+const Sparkles = ({ isMobile }) => {
+  const count = isMobile ? 10 : 20;
   const sparkles = useMemo(
     () =>
-      Array.from({ length: SPARKLE_COUNT }, () => ({
+      Array.from({ length: count }, () => ({
         top: `${Math.random() * 100}%`,
         left: `${Math.random() * 100}%`,
         size: 8 + Math.random() * 12,
@@ -400,7 +408,7 @@ const Sparkles = () => {
         duration: 3 + Math.random() * 4,
         rotate: Math.random() * 360,
       })),
-    [],
+    [count],
   );
 
   return (
@@ -547,45 +555,38 @@ const Hero = () => {
         ].join(" ")}
       >
         {/* Sparkles (Custom DOM version) - Z-0 */}
-        <Sparkles />
+        <Sparkles isMobile={isMobile} />
 
         {/* 1. THE 3D CANVAS - Z-0 (Transparent to show sparkles behind) */}
         <div className="absolute inset-0 z-0">
           <HeroShimmer visible={!heroLoaded} />
           <Canvas
-            flat
             dpr={[1, isMobile ? 1.5 : 2]}
             gl={{ alpha: true, antialias: false }}
-            onCreated={({ gl }) => {
-              // Ensure background is transparent so custom DOM sparkles show through
-              gl.setClearColor("#000000", 0);
-            }}
+            onCreated={({ gl }) => gl.setClearColor("#000000", 0)}
             camera={{ position: [0, 0, 18], fov: isMobile ? 48 : 36 }}
           >
-            {/* Ambient — lowered for more contrast */}
             <ambientLight intensity={0.5} />
-
-            {/* Key light — warm, from upper-right */}
-            <directionalLight
-              position={[6, 10, 6]}
-              intensity={0.5}
-              color="#fff5e6"
-            />
-
-            {/* Fill light — cool, from left to lift shadows */}
-            <directionalLight
-              position={[-6, 4, 4]}
-              intensity={0.5}
-              color="#c8d8ff"
-            />
+            {isMobile ? (
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+            ) : (
+              <>
+                <directionalLight position={[6, 10, 6]} intensity={0.8} color="#fff5e6" />
+                <directionalLight position={[-6, 4, 4]} intensity={0.8} color="#c8d8ff" />
+              </>
+            )}
 
             <Suspense fallback={null}>
-              {/* HDR environment for realistic reflections on clearcoat */}
-              <Environment
-                preset="warehouse"
-                environmentIntensity={1.5}
-                blur={0.5}
-              />
+              {/* HDR environment for realistic reflections on clearcoat — desktop only */}
+              {isMobile ? (
+                <Environment preset="city" />
+              ) : (
+                <Environment
+                  files="/empty_warehouse_01_1k.hdr"
+                  environmentIntensity={1.5}
+                  blur={0.5}
+                />
+              )}
 
               <ShapesRow isMobile={isMobile} depthFadeRef={depthFadeRef} />
 

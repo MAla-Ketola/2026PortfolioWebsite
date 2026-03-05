@@ -21,6 +21,8 @@ const SectionWrapper = (Component, idName) =>
           className={
             idName === "hero" || idName === "tech" || idName === "about" || idName === "contact"
               ? ""
+              : idName === "ali-ketola" || idName === "happy-tracker"
+              ? `${styles.paddingX} max-w-7xl mx-auto`
               : `${styles.padding} max-w-7xl mx-auto`
           }
         >
