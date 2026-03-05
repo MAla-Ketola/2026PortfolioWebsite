@@ -6,6 +6,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useSpring,
+  useAnimation,
 } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Decal, Environment } from "@react-three/drei";
@@ -483,6 +484,7 @@ const Hero = () => {
   const depthFadeRef = useRef(0);
   const [textHidden, setTextHidden] = useState(false);
   const [containerReady, setContainerReady] = useState(false);
+  const ringControls = useAnimation();
 
   const { scrollYProgress } = useScroll({
     container: containerReady ? scrollContainerRef : undefined,
@@ -535,10 +537,6 @@ const Hero = () => {
     setTextHidden(v >= 0.18);
   });
 
-  const scrollToId = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <div
@@ -645,57 +643,55 @@ const Hero = () => {
               <span>Creative Coder</span>
             </div>
 
-            {/* BUTTON */}
+            {/* SCROLL CUE */}
             <div className="animate-fade-up delay-300 flex items-center justify-center opacity-0">
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToId("contact");
-                }}
-                className="group relative inline-block cursor-pointer pointer-events-auto rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
-                tabIndex={textHidden ? -1 : 0}
+              {/* Circular scroll cue */}
+              <div
+                className="relative w-[110px] h-[110px] flex-shrink-0 pointer-events-auto cursor-pointer"
+                aria-hidden="true"
+                onMouseEnter={() => !reduceMotion && ringControls.start({ rotate: 360, transition: { duration: 3, repeat: Infinity, ease: "linear" } })}
+                onMouseLeave={() => ringControls.start({ rotate: 0, transition: { duration: 0.6, ease: "easeOut" } })}
               >
-                <span
-                  className="relative block rounded-full px-8 py-3 text-base md:px-12 md:py-4 md:text-lg font-bold tracking-widest uppercase text-black border-2 border-[#F087FE] transition-all duration-200 transform-gpu group-hover:opacity-90 group-active:opacity-80 group-hover:border-[#8C52FD] group-hover:-translate-y-1 group-hover:rotate-[-6deg]"
-                  style={{
-                    background:
-                      "linear-gradient(130deg, #F087FE 10%, #FED814 50%, #FED814 70%, #8C52FD 100%)",
-                  }}
+                {/* Ring with gap at top for text */}
+                <motion.svg width="110" height="110" viewBox="0 0 100 100" fill="none" className="absolute inset-0" animate={ringControls}>
+                  <defs>
+                    <path id="hero-scroll-path" d="M 8,50 A 42,42 0 0,1 50,8 A 42,42 0 0,1 92,50 A 42,42 0 0,1 50,92 A 42,42 0 0,1 8,50" />
+                    {/* 150deg gradient: #F844C2 → #F087FE → #FED814 */}
+                    <linearGradient id="ringGradient" gradientUnits="userSpaceOnUse" x1="29" y1="14" x2="71" y2="86">
+                      <stop offset="0%" stopColor="#F844C2" />
+                      <stop offset="50%" stopColor="#F087FE" />
+                      <stop offset="100%" stopColor="#FED814" />
+                    </linearGradient>
+                  </defs>
+                  {/* Arc that skips the top ~120° where the text sits */}
+                  <path
+                    d="M 86.4,29 A 42,42 0 1,1 13.6,29"
+                    stroke="url(#ringGradient)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* dy="4" shifts baseline inward so ring stroke bisects the letters */}
+                  <text fontSize="8" fill="url(#ringGradient)" fillOpacity="1" letterSpacing="1.5" fontFamily="monospace" fontWeight="700">
+                    <textPath href="#hero-scroll-path" startOffset="25%" textAnchor="middle" dy="4">SCROLL DOWN</textPath>
+                  </text>
+                </motion.svg>
+                {/* Bouncing heart */}
+                <motion.svg
+                  width="110" height="110" viewBox="0 0 100 100" fill="none"
+                  className="absolute inset-0"
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  Contact
-                </span>
-              </a>
+                  <path
+                    d="M 50,65 C 50,65 37,55 37,47 C 37,41 41,38 45,41 C 47,42 49,45 50,48 C 51,45 53,42 55,41 C 59,38 63,41 63,47 C 63,55 50,65 50,65 Z"
+                    fill="#F844C2"
+                    fillOpacity="0.85"
+                  />
+                </motion.svg>
+              </div>
             </div>
 
-            {/* SCROLL CUE - Absolute Positioned */}
-            <div
-              className="absolute -bottom-20 left-0 w-full flex justify-center opacity-0 animate-fade-up"
-              style={{ animationDelay: "0.8s" }}
-            >
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="text-[#F087FE]"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
-                </svg>
-              </motion.div>
-            </div>
           </motion.div>
         </div>
 
