@@ -220,22 +220,22 @@ export default function Define() {
 
       {/* Client Interview Highlights */}
       <div className="mt-16 bg-[#111] rounded-[20px] border border-white/10 p-8 md:p-12 relative overflow-hidden">
-        <h4 className="text-center font-bold text-white text-xl mb-8">
+        <h4 className="relative z-10 text-center font-bold text-white text-xl mb-8">
           Client interview highlights
         </h4>
         <span
-          className="absolute top-6 left-6 text-7xl font-black leading-none select-none pointer-events-none"
+          className="absolute z-0 top-3 left-3 md:top-6 md:left-6 text-5xl md:text-7xl font-black leading-none select-none pointer-events-none"
           style={{ color: "#FED814", opacity: 0.70 }}
         >
           "
         </span>
         <span
-          className="absolute bottom-4 right-6 text-7xl font-black leading-none select-none pointer-events-none"
+          className="absolute z-0 bottom-1 right-3 md:bottom-4 md:right-6 text-5xl md:text-7xl font-black leading-none select-none pointer-events-none"
           style={{ color: "#FED814", opacity: 0.70 }}
         >
           "
         </span>
-        <div className="space-y-6">
+        <div className="relative z-10 space-y-6">
           {interview.map((quote, i) => (
             <p
               key={i}

@@ -39,9 +39,9 @@ const GlowButton = ({ href, onClick, children, external = false }) => {
       target={external ? "_blank" : "_self"}
       rel={external ? "noopener noreferrer" : ""}
       style={gradientBorderStyle}
-      className="group relative inline-flex items-center justify-center px-8 md:px-10 py-3.5 md:py-4 shadow-xl transition-all duration-200 transform-gpu hover:opacity-90 active:opacity-80 hover:-translate-y-1 hover:rotate-[-6deg] cursor-pointer"
+      className="group relative inline-flex items-center justify-center px-5 md:px-10 py-2 md:py-4 shadow-xl transition-all duration-200 transform-gpu hover:opacity-90 active:opacity-80 hover:-translate-y-1 hover:rotate-[-6deg] cursor-pointer"
     >
-      <div className="font-bold text-white text-xl md:text-2xl tracking-wide group-hover:opacity-80 transition-opacity">
+      <div className="font-bold text-white text-sm md:text-2xl tracking-wide group-hover:opacity-80 transition-opacity">
         {children}
       </div>
     </a>
@@ -56,12 +56,12 @@ const GlowIconButton = ({ href, icon, external = false }) => {
       target={external ? "_blank" : "_self"}
       rel={external ? "noopener noreferrer" : ""}
       style={gradientBorderStyle}
-      className="group relative flex items-center justify-center w-16 h-16 shadow-xl transition-all duration-200 transform-gpu hover:opacity-90 active:opacity-80 hover:-translate-y-1 hover:rotate-[-6deg] cursor-pointer"
+      className="group relative flex items-center justify-center w-9 h-9 md:w-16 md:h-16 shadow-xl transition-all duration-200 transform-gpu hover:opacity-90 active:opacity-80 hover:-translate-y-1 hover:rotate-[-6deg] cursor-pointer"
     >
       <img
         src={icon}
         alt="source code"
-        className="w-7 h-7 object-contain brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity"
+        className="w-4 h-4 md:w-7 md:h-7 object-contain brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity"
       />
     </a>
   );
@@ -96,7 +96,9 @@ const ProjectCard = ({
   image,
   source_code_link,
   live_demo,
+  live_demo_label,
   page,
+  bgColor,
 }) => {
   const number = String(index + 1).padStart(2, "0");
 
@@ -105,7 +107,7 @@ const ProjectCard = ({
   const rampCount = 4;
   const ramp = Math.min(index, rampCount) * stepPx;
 
-  const currentHex = palette[index % palette.length];
+  const currentHex = bgColor || palette[index % palette.length];
 
   return (
     <div
@@ -163,13 +165,9 @@ const ProjectCard = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 lg:mt-8">
-              {page ? (
-                <GlowButton href={page}>VIEW</GlowButton>
-              ) : live_demo ? (
-                <GlowButton href={live_demo} external>
-                  VIEW
-                </GlowButton>
-              ) : null}
+              {page && <GlowButton href={page}>VIEW</GlowButton>}
+              {live_demo && <GlowButton href={live_demo} external>{live_demo_label || "LIVE SITE"}</GlowButton>}
+              {!page && !live_demo && null}
 
               {source_code_link && (
                 <GlowIconButton href={source_code_link} icon={github} external />

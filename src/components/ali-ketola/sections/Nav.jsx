@@ -90,7 +90,7 @@ export default function Nav() {
                   {s.emoji}
                 </span>
                 <span
-                  className="text-sm font-black uppercase tracking-wider text-black"
+                  className="text-[10px] md:text-sm font-black uppercase tracking-wider text-black"
                 >
                   {s.label}
                 </span>

@@ -627,7 +627,7 @@ const Hero = () => {
               className="
               animate-hero-fill-fade
               tracking-tighter
-              text-[11vw]
+              text-[16vw] sm:text-[11vw]
               leading-[0.9] mb-8
             "
               style={{ fontFamily: "'Milkyway', sans-serif" }}
@@ -635,7 +635,7 @@ const Hero = () => {
               Hi, I'm Marjut
             </h1>
             {/* TAGS */}
-            <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/80 font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
+            <div className="animate-fade-up delay-200 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-white/80 font-mono text-[10px] sm:text-xs md:text-sm font-bold tracking-[0.2em] uppercase opacity-0">
               <span>Frontend</span>
               <span className="w-1 h-1 rounded-full bg-white/40" />
               <span>UI/UX</span>

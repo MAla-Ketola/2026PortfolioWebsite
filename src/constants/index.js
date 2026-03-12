@@ -143,27 +143,6 @@ const experiences = [
 
 const projects = [
   {
-    name: "Little Lemon",
-    description:
-      "Fictional Mediterranean restaurant brief turned into a desktop React app with a guided Reserve-a-Table flow.",
-    tags: [
-      {
-        name: "react",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "javascript",
-        color: "green-text-gradient",
-      },
-      {
-        name: "css",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: LittleLemon,
-    source_code_link: "https://github.com/MAla-Ketola/Little-Lemon",
-  },
-  {
     name: "Ali-Ketola",
     description:
       "Wix design-to-build for a countryside venue new structure, landing pages, and consistent brand palette to make exploring spaces easier.",
@@ -189,6 +168,51 @@ const projects = [
     source_code_link: null,
     live_demo: "https://en.ali-ketolantila.fi/",
     page: "/ali-ketola",
+    bgColor: "#F087FE",
+  },
+  {
+    name: "Little Lemon",
+    description:
+      "Fictional Mediterranean restaurant brief turned into a desktop React app with a guided Reserve-a-Table flow.",
+    tags: [
+      {
+        name: "react",
+        color: "blue-text-gradient",
+      },
+      {
+        name: "javascript",
+        color: "green-text-gradient",
+      },
+      {
+        name: "css",
+        color: "pink-text-gradient",
+      },
+    ],
+    image: LittleLemon,
+    source_code_link: "https://github.com/MAla-Ketola/Little-Lemon",
+    live_demo: "https://little-lemon.marjutala-ketola.com",
+    live_demo_label: "DEMO SITE",
+    page: "/little-lemon",
+    bgColor: "#25E995",
+  },
+  {
+    name: "Happy Tracker",
+    description:
+      "A vertical slice of a user-friendly habit-building app designed to help users manage daily habits, and track progress.​",
+    tags: [
+      {
+        name: "xcode",
+        color: "blue-text-gradient",
+      },
+      {
+        name: "swift",
+        color: "green-text-gradient",
+      },
+    ],
+    image: happytracker,
+    source_code_link: null,
+    page: "/happy-tracker",
+    bgColor: "#01D6FB",
   },
   {
     name: "Portfolio 2026",
@@ -209,6 +233,7 @@ const projects = [
     ],
     image: portfolio2026,
     source_code_link: "https://github.com/MAla-Ketola/2026PortfolioWebsite",
+    bgColor: "#8C52FD",
   },
   {
     name: "Step & Bloom",
@@ -226,24 +251,8 @@ const projects = [
     ],
     image: stepnbloom,
     source_code_link: null,
-  },
-  {
-    name: "Happy Tracker",
-    description:
-      "A vertical slice of a user-friendly habit-building app designed to help users manage daily habits, and track progress.​",
-    tags: [
-      {
-        name: "xcode",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "swift",
-        color: "green-text-gradient",
-      },
-    ],
-    image: happytracker,
-    source_code_link: null,
-    page: "/happy-tracker",
+    page: "/step-and-bloom",
+    bgColor: "#FED814",
   },
   {
     name: "Portfolio 2025",
@@ -264,6 +273,7 @@ const projects = [
     ],
     image: portfolio,
     source_code_link: "https://github.com/MAla-Ketola/PortfolioWebsite",
+    live_demo: "https://portfolio2025.marjutala-ketola.com",
   },
   {
     name: "Eneme",

@@ -54,8 +54,8 @@ const GlowIconButton = ({ href, icon, external = false }) => (
   </a>
 );
 
-const ProjectCard = ({ index, name, description, tags, image, source_code_link, live_demo, page }) => {
-  const colorHex = palette[index % palette.length];
+const ProjectCard = ({ index, name, description, tags, image, source_code_link, live_demo, live_demo_label, page, bgColor }) => {
+  const colorHex = bgColor || palette[index % palette.length];
 
   return (
     <motion.div
@@ -110,11 +110,9 @@ const ProjectCard = ({ index, name, description, tags, image, source_code_link, 
         </p>
 
         <div className="flex items-center gap-2.5 mt-auto pt-2">
-          {page ? (
-            <GlowButton href={page}>VIEW</GlowButton>
-          ) : live_demo ? (
-            <GlowButton href={live_demo} external>VIEW</GlowButton>
-          ) : null}
+          {page && <GlowButton href={page}>VIEW</GlowButton>}
+          {!page && live_demo && <GlowButton href={live_demo} external>{live_demo_label || "LIVE SITE"}</GlowButton>}
+          {page && live_demo && <GlowButton href={live_demo} external>{live_demo_label || "LIVE SITE"}</GlowButton>}
           {source_code_link && (
             <GlowIconButton href={source_code_link} icon={github} external />
           )}

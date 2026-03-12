@@ -5,6 +5,8 @@ import { View } from "@react-three/drei";
 import { About, Contact, Experience, Footer, Navbar, Works, Hero, Tech } from "./components";
 const AliKetolaPage = React.lazy(() => import("./pages/AliKetolaPage"));
 const HappyTrackerPage = React.lazy(() => import("./pages/HappyTrackerPage"));
+const LittleLemonPage = React.lazy(() => import("./pages/LittleLemonPage"));
+const StepAndBloomPage = React.lazy(() => import("./pages/StepAndBloomPage"));
 const ProjectsPage = React.lazy(() => import("./pages/ProjectsPage"));
 
 const HashScrollHandler = () => {
@@ -90,6 +92,22 @@ const App = () => {
               element={
                 <React.Suspense fallback={routeFallback}>
                   <HappyTrackerPage />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="/little-lemon"
+              element={
+                <React.Suspense fallback={routeFallback}>
+                  <LittleLemonPage />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="/step-and-bloom"
+              element={
+                <React.Suspense fallback={routeFallback}>
+                  <StepAndBloomPage />
                 </React.Suspense>
               }
             />

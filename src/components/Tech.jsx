@@ -274,6 +274,15 @@ const SceneReady = ({ onReady }) => {
   return null;
 };
 
+/* Manual auto-rotate for mobile (used when OrbitControls is disabled) */
+const AutoRotate = () => {
+  useFrame(({ camera }, delta) => {
+    camera.position.applyAxisAngle({ x: 0, y: 1, z: 0 }, delta * 0.15);
+    camera.lookAt(0, 0, 0);
+  });
+  return null;
+};
+
 /* -------------------------------------------------------------------------- */
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
@@ -283,12 +292,22 @@ const Tech = () => {
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
   const sectionRef = useRef(null);
+  const canvasContainerRef = useRef(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Capture wheel events before OrbitControls can stopPropagation/preventDefault them
+  useEffect(() => {
+    const el = canvasContainerRef.current;
+    if (!el) return;
+    const onWheel = (e) => window.scrollBy({ top: e.deltaY, behavior: "auto" });
+    el.addEventListener("wheel", onWheel, { capture: true, passive: true });
+    return () => el.removeEventListener("wheel", onWheel, { capture: true });
   }, []);
 
   useEffect(() => {
@@ -336,7 +355,7 @@ const Tech = () => {
           >
             Tech
           </h2>
-          <div className={`mt-2 md:-mt-2 transition-opacity duration-700 ${triggerAnimation ? "opacity-100" : "opacity-0"}`}>
+          <div className={`hidden md:block mt-2 md:-mt-2 transition-opacity duration-700 ${triggerAnimation ? "opacity-100" : "opacity-0"}`}>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/25 bg-white/5 backdrop-blur-sm text-xs text-white/80 tracking-widest uppercase">
               <span aria-hidden>←</span>
               drag to explore
@@ -345,17 +364,34 @@ const Tech = () => {
           </div>
       </motion.div>
 
+      {/* Mobile scroll shield — sits above canvas, passes vertical swipes to browser */}
+      {isMobile && (
+        <div className="absolute inset-0 z-[15]" style={{ touchAction: "pan-y" }} />
+      )}
+
       {/* 3D Canvas - Changed z-0 to z-10 so it sits ABOVE sparkles but BELOW title */}
-      <div className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing">
+      <div
+        ref={canvasContainerRef}
+        className={`absolute inset-0 z-10 ${!isMobile ? "cursor-grab active:cursor-grabbing" : ""}`}
+        style={{ touchAction: isMobile ? "pan-y" : "none" }}
+      >
         <TechShimmer visible={canvasReady && !sceneLoaded} />
         {canvasReady && (
-        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 14], fov: 50 }}>
+        <Canvas
+          dpr={[1, 1.5]}
+          camera={{ position: [0, 0, 14], fov: 50 }}
+          onCreated={({ gl }) => {
+            gl.domElement.style.touchAction = "none";
+            gl.domElement.style.pointerEvents = "none";
+          }}
+        >
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
 
           <Environment preset="city" />
 
           <OrbitControls
+            enabled={!isMobile}
             enableZoom={false}
             enablePan={false}
             autoRotate
@@ -363,6 +399,7 @@ const Tech = () => {
             minPolarAngle={Math.PI / 2 - 0.5}
             maxPolarAngle={Math.PI / 2 + 0.5}
           />
+          {isMobile && <AutoRotate />}
 
           <Suspense fallback={null}>
             <TechScene isMobile={isMobile} />
@@ -378,7 +415,6 @@ const Tech = () => {
 };
 
 export default SectionWrapper(Tech, "tech");
-
 
 
 

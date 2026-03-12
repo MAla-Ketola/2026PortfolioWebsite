@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { fadeIn } from "../../../utils/motion";
 import { SectionHeader } from "../shared/ui";
 
-const SECTION_ORDER = ["define", "design-process", "implement", "results"];
+const SECTION_ORDER = ["define", "prototype", "implement", "results"];
 
 function scrollToSection(id) {
   const el = document.getElementById(id);
@@ -47,10 +47,10 @@ const stickers = [
 
 export default function Nav() {
   const steps = [
-    { id: "define",         label: "DEFINE",         emoji: "🧭" },
-    { id: "design-process", label: <>DESIGN<br />PROCESS</>,  emoji: "✏️" },
-    { id: "implement",      label: "IMPLEMENT",      emoji: "🛠️" },
-    { id: "results",        label: <>RESULTS &<br />REFLECTIONS</>,        emoji: "💭" },
+    { id: "define",    label: "DEFINE",                       emoji: "🧭" },
+    { id: "prototype", label: "PROTOTYPE",                    emoji: "✏️" },
+    { id: "implement", label: "IMPLEMENT",                    emoji: "🛠️" },
+    { id: "results",   label: <>RESULTS &<br />REFLECTIONS</>, emoji: "💭" },
   ];
 
   const container = {

@@ -99,7 +99,7 @@ const HeartCanvas = () => (
 );
 
 const GlassSphereCanvas = () => (
-  <div className="w-[200px] md:w-[200px] h-[100px] md:h-[200px]">
+  <div className="relative z-10 w-[200px] md:w-[200px] h-[100px] md:h-[200px]">
     <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
       <Suspense fallback={null}>
         <ambientLight intensity={0.5} />

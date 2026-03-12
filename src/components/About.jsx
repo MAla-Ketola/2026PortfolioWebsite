@@ -66,7 +66,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8"
+              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8 px-2 sm:px-0"
             >
               I started my career in hospitality before moving into tech and
               graduating in Games Technology. Since then, I’ve been building my
@@ -77,13 +77,13 @@ const About = () => {
               creative. My current tools include <strong style={{color:"#8C52FD"}}>React</strong>, <strong style={{color:"#8C52FD"}}>Three.js</strong>, and{" "}
               <strong style={{color:"#8C52FD"}}>JavaScript</strong>, along with <strong style={{color:"#8C52FD"}}>C#</strong> and <strong style={{color:"#8C52FD"}}>C++</strong> from my degree. <br />
               <br />
-              I’m now working towards stepping into a junior software developer
+              I’m now working towards stepping into a software developer
               role, where I can keep growing and bring a user-focused, creative
               approach to development.
             </motion.p>
 
             {/* TAGS */}
-            <div className="flex items-center justify-center gap-4 font-black text-xl uppercase tracking-wider text-black">
+            <div className="flex items-center justify-center gap-4 font-black text-lg sm:text-xl uppercase tracking-wider text-black px-2 sm:px-0">
               {["WEB", "✨", "MOBILE", "✨", "UX", "✨", "GAMES"].map(
                 (tag, i) => (
                   <motion.span
@@ -92,7 +92,7 @@ const About = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
-                    className={tag === "✨" ? "text-2xl text-[#FED814]" : ""}
+                    className={tag === "✨" ? "text-xl sm:text-2xl text-[#FED814]" : ""}
                   >
                     {tag}
                   </motion.span>
@@ -131,3 +131,4 @@ const About = () => {
 };
 
 export default SectionWrapper(About, "about");
+
