@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { SectionHeader, Card } from "../shared/ui";
 import { designSteps, wireframeNotes, userTesting } from "../content";
 import cardPhotos from "../../../assets/step&bloom/Card photos.png";
-import videoGif from "../../../assets/step&bloom/Video.gif";
 
 export default function DesignProcess() {
   return (

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { meta } from "../content";
-import heroVideo from "../../../assets/step&bloom/Video.gif";
+import heroVideo from "../../../assets/step&bloom/Hero video.mp4";
 
 export default function Hero() {
   const roleParts = Array.isArray(meta.role)
@@ -55,10 +55,13 @@ export default function Hero() {
             className="w-full h-[280px] md:h-full min-h-[400px] rounded-[20px] md:rounded-[32px] shadow-2xl overflow-hidden flex items-center justify-center"
             style={{ backgroundColor: "#FED814" }}
           >
-            <img
+            <video
               src={heroVideo}
-              alt="Step & Bloom app demo"
-              className="w-full h-full object-contain"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover block"
             />
           </div>
         </motion.figure>

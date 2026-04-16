@@ -61,26 +61,17 @@ const About = () => {
           {/* LEFT COLUMN: TEXT CONTENT */}
           {/* Added 'text-center' to center the paragraph text as requested */}
           <div className="flex-1 flex flex-col items-center md:items-center text-center max-w-xl">
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8 px-2 sm:px-0"
+              className="font-sans text-xl md:text-2xl text-gray-900 leading-relaxed font-medium mb-8 px-2 sm:px-0 flex flex-col gap-5"
             >
-              I started my career in hospitality before moving into tech and
-              graduating in Games Technology. Since then, I’ve been building my
-              own projects and exploring UX, AI, and game-inspired interactions.{" "}
-              <br />
-              <br />
-              I enjoy creating experiences that feel engaging, intuitive, and
-              creative. My current tools include <strong style={{color:"#8C52FD"}}>React</strong>, <strong style={{color:"#8C52FD"}}>Three.js</strong>, and{" "}
-              <strong style={{color:"#8C52FD"}}>JavaScript</strong>, along with <strong style={{color:"#8C52FD"}}>C#</strong> and <strong style={{color:"#8C52FD"}}>C++</strong> from my degree. <br />
-              <br />
-              I’m now working towards stepping into a software developer
-              role, where I can keep growing and bring a user-focused, creative
-              approach to development.
-            </motion.p>
+              <p>I spent most of my twenties <span className="font-black text-[#8C52FD]">travelling</span> through South America, Southeast Asia, Australia, and New Zealand, working in hospitality and figuring out what I actually wanted to do with my life. The answer turned out to be <span className="font-black text-[#8C52FD]">tech</span>, which surprised me more than anyone.</p>
+              <p>I came to it late, on my own terms, with a <span className="font-black text-[#8C52FD]">BSc in Games Technology</span> from UWE Bristol. Hard for someone who was never a science or maths person, and that's exactly why I'm glad I did it.</p>
+              <p>What pulled me toward <span className="font-black text-[#8C52FD]">UX</span> was the psychology of it. Good design is <span className="font-black text-[#8C52FD]">applied empathy</span>: understanding what someone needs, sometimes before they can say it themselves. I design in <span className="font-black text-[#8C52FD]">Figma</span>, build in <span className="font-black text-[#8C52FD]">React</span>, and care about products that are accessible, purposeful, and genuinely useful.</p>
+            </motion.div>
 
             {/* TAGS */}
             <div className="flex items-center justify-center gap-4 font-black text-lg sm:text-xl uppercase tracking-wider text-black px-2 sm:px-0">
@@ -103,7 +94,7 @@ const About = () => {
 
           {/* RIGHT COLUMN: PORTRAIT IMAGE */}
           <motion.div
-            className="flex-shrink-0"
+            className="flex-shrink-0 md:self-stretch"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -114,7 +105,7 @@ const About = () => {
               transition: { duration: 0.25, ease: "easeOut" },
             }}
           >
-            <div className="w-[300px] h-[400px] md:w-[350px] md:h-[450px] bg-[#25E995] rounded-[40px] overflow-hidden relative flex items-end justify-center shadow-lg">
+            <div className="w-[300px] md:w-[350px] h-full max-h-[500px] bg-[#25E995] rounded-[40px] overflow-hidden relative flex items-end justify-center shadow-lg">
               <img
                 src="/portrait2.webp"
                 alt="Self Portrait"
