@@ -11,10 +11,6 @@ const useSVGTexture = (url) => {
     fetch(url)
       .then((r) => r.text())
       .then((svgText) => {
-        // Strip existing width/height and inject 512×512 so WebGL gets a
-        // high-res raster. We use a data URL + TextureLoader instead of
-        // canvas drawImage because mobile Chrome mis-handles SVGs with a
-        // negative-Y viewBox (Material Symbols format) in 2D canvas context.
         const sized = svgText.replace(/(<svg[^>]*?)(\s*\/?>)/, (_, attrs, close) => {
           const cleaned = attrs
             .replace(/\s*width="[^"]*"/, "")
@@ -22,7 +18,13 @@ const useSVGTexture = (url) => {
           return cleaned + ' width="512" height="512"' + close;
         });
         const dataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(sized);
-        new THREE.TextureLoader().load(dataUrl, (tex) => setTexture(tex));
+        new THREE.TextureLoader().load(dataUrl, (tex) => {
+          // CRITICAL MOBILE FIX
+          tex.generateMipmaps = false;
+          tex.minFilter = THREE.LinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          setTexture(tex);
+        });
       });
   }, [url]);
   return texture;
@@ -270,14 +272,22 @@ const Shape3D = ({
           </div>
         </Html>
       )}
-      {texture && (
-        <Decal
-          position={decal.position}
-          rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
-          scale={decal.scale}
-          map={texture}
-        />
-      )}
+{texture && (
+  <Decal
+    position={decal.position}
+    rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
+    scale={decal.scale}
+  >
+     <meshStandardMaterial 
+        map={texture} 
+        transparent={true} 
+        depthWrite={false} 
+        polygonOffset 
+        polygonOffsetFactor={-10} 
+        alphaTest={0.1}
+     />
+  </Decal>
+)}
     </mesh>
   );
 };

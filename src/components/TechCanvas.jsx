@@ -8,21 +8,35 @@ const useSVGTexture = (url) => {
   const [texture, setTexture] = useState(null);
   useEffect(() => {
     if (!url) return;
+
+    // Helper function to apply the mobile fix to any loaded texture
+    const handleTexture = (tex) => {
+      // CRITICAL: Prevents mobile WebGL from crashing on NPOT (Non-Power-Of-Two) images
+      tex.generateMipmaps = false;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      setTexture(tex);
+    };
+
     if (!url.endsWith(".svg")) {
-      new THREE.TextureLoader().load(url, (tex) => setTexture(tex));
+      new THREE.TextureLoader().load(url, handleTexture);
       return;
     }
     fetch(url)
       .then((r) => r.text())
       .then((svgText) => {
-        const sized = svgText.replace(/(<svg[^>]*?)(\s*\/?>)/, (_, attrs, close) => {
-          const cleaned = attrs
-            .replace(/\s*width="[^"]*"/, "")
-            .replace(/\s*height="[^"]*"/, "");
-          return cleaned + ' width="512" height="512"' + close;
-        });
-        const dataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(sized);
-        new THREE.TextureLoader().load(dataUrl, (tex) => setTexture(tex));
+        const sized = svgText.replace(
+          /(<svg[^>]*?)(\s*\/?>)/,
+          (_, attrs, close) => {
+            const cleaned = attrs
+              .replace(/\s*width="[^"]*"/, "")
+              .replace(/\s*height="[^"]*"/, "");
+            return cleaned + ' width="512" height="512"' + close;
+          },
+        );
+        const dataUrl =
+          "data:image/svg+xml;charset=utf-8," + encodeURIComponent(sized);
+        new THREE.TextureLoader().load(dataUrl, handleTexture);
       });
   }, [url]);
   return texture;
@@ -32,7 +46,7 @@ const getCylinderPositions = (count, radius, isMobile) => {
   const positions = [];
   const verticalSpread = isMobile ? 2.5 : 2.0;
   for (let i = 0; i < count; i++) {
-    const y = ((i / (count - 1)) * verticalSpread * 2) - verticalSpread;
+    const y = (i / (count - 1)) * verticalSpread * 2 - verticalSpread;
     const theta = i * 2.4;
     positions.push([Math.cos(theta) * radius, y, Math.sin(theta) * radius]);
   }
@@ -40,11 +54,11 @@ const getCylinderPositions = (count, radius, isMobile) => {
 };
 
 const DECAL_CONFIG = {
-  box:    { position: [0, 0, 0.46], scale: 0.6 },
+  box: { position: [0, 0, 0.46], scale: 0.6 },
   sphere: { position: [0, 0, 0.56], scale: 0.65 },
-  torus:  { position: [0, 0, 0.19], scale: 0.5 },
-  heart:  { position: [0, 0, 0.26], scale: 0.5 },
-  star:   { position: [0, 0, 0.2],  scale: 0.4 },
+  torus: { position: [0, 0, 0.19], scale: 0.5 },
+  heart: { position: [0, 0, 0.26], scale: 0.5 },
+  star: { position: [0, 0, 0.2], scale: 0.4 },
 };
 
 const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
@@ -70,7 +84,13 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
       s.bezierCurveTo(0.6, 0.77, 0.8, 0.55, 0.8, 0.35);
       s.bezierCurveTo(0.8, 0.35, 0.8, 0, 0.5, 0);
       s.bezierCurveTo(0.35, 0, 0.25, 0.25, 0.25, 0.25);
-      const geo = new THREE.ExtrudeGeometry(s, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 3 });
+      const geo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.4,
+        bevelEnabled: true,
+        bevelThickness: 0.06,
+        bevelSize: 0.06,
+        bevelSegments: 3,
+      });
       geo.center();
       return geo;
     }
@@ -79,10 +99,18 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
       for (let i = 0; i < 10; i++) {
         const angle = (i * Math.PI) / 5 - Math.PI / 2;
         const r = i % 2 === 0 ? 0.5 : 0.22;
-        i === 0 ? s.moveTo(Math.cos(angle) * r, Math.sin(angle) * r) : s.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        i === 0
+          ? s.moveTo(Math.cos(angle) * r, Math.sin(angle) * r)
+          : s.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
       }
       s.closePath();
-      const geo = new THREE.ExtrudeGeometry(s, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 });
+      const geo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.3,
+        bevelEnabled: true,
+        bevelThickness: 0.04,
+        bevelSize: 0.04,
+        bevelSegments: 2,
+      });
       geo.center();
       return geo;
     }
@@ -92,9 +120,12 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
   const renderGeometry = () => {
     if (geometry) return <primitive object={geometry} />;
     switch (shapeType) {
-      case "box":   return <boxGeometry args={[0.85, 0.85, 0.85]} />;
-      case "torus": return <torusGeometry args={[0.5, 0.2, 32, 64]} />;
-      default:      return <sphereGeometry args={[0.65, 32, 32]} />;
+      case "box":
+        return <boxGeometry args={[0.85, 0.85, 0.85]} />;
+      case "torus":
+        return <torusGeometry args={[0.5, 0.2, 32, 64]} />;
+      default:
+        return <sphereGeometry args={[0.65, 32, 32]} />;
     }
   };
 
@@ -106,7 +137,10 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
       <Float speed={2} rotationIntensity={0} floatIntensity={1}>
         <mesh
           ref={meshRef}
-          onPointerOver={(e) => { e.stopPropagation(); setHover(true); }}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            setHover(true);
+          }}
           onPointerOut={() => setHover(false)}
           scale={hovered ? hoverScale : baseScale}
           rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
@@ -114,13 +148,38 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
         >
           {renderGeometry()}
           {isMobile ? (
-            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={hovered ? 0.8 : 0.15} roughness={0.2} metalness={0.4} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={hovered ? 0.8 : 0.15}
+              roughness={0.2}
+              metalness={0.4}
+            />
           ) : (
-            <meshPhysicalMaterial color={color} emissive={color} emissiveIntensity={hovered ? 0.8 : 0.15} roughness={0.2} metalness={0.4} reflectivity={0.5} />
+            <meshPhysicalMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={hovered ? 0.8 : 0.15}
+              roughness={0.2}
+              metalness={0.4}
+              reflectivity={0.5}
+            />
           )}
           {texture && (
-            <Decal position={decal.position} rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]} scale={decal.scale}>
-              <meshBasicMaterial map={texture} toneMapped={false} transparent polygonOffset polygonOffsetFactor={-1} />
+            <Decal
+              position={decal.position}
+              rotation={shapeType === "heart" ? [0, 0, Math.PI] : [0, 0, 0]}
+              scale={decal.scale}
+            >
+              <meshBasicMaterial
+                map={texture}
+                toneMapped={false}
+                transparent={true}
+                alphaTest={0.05}
+                depthWrite={false}
+                polygonOffset
+                polygonOffsetFactor={-10}
+              />
             </Decal>
           )}
         </mesh>
@@ -131,11 +190,38 @@ const TechShape = ({ position, icon, color, shapeType, isMobile }) => {
 
 const TechScene = ({ isMobile }) => {
   const radius = isMobile ? 2 : 4.5;
-  const positions = useMemo(() => getCylinderPositions(technologies.length, radius, isMobile), [radius, isMobile]);
+  const positions = useMemo(
+    () => getCylinderPositions(technologies.length, radius, isMobile),
+    [radius, isMobile],
+  );
   const palette = ["#8C52FD", "#FED814", "#F087FE", "#25E995", "#01D6FB"];
   const shapeTypes = isMobile
-    ? ["sphere", "star", "sphere", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"]
-    : ["sphere", "star", "torus", "sphere", "sphere", "heart", "heart", "star", "sphere", "sphere", "sphere"];
+    ? [
+        "sphere",
+        "star",
+        "sphere",
+        "sphere",
+        "sphere",
+        "heart",
+        "heart",
+        "star",
+        "sphere",
+        "sphere",
+        "sphere",
+      ]
+    : [
+        "sphere",
+        "star",
+        "torus",
+        "sphere",
+        "sphere",
+        "heart",
+        "heart",
+        "star",
+        "sphere",
+        "sphere",
+        "sphere",
+      ];
   const yOffset = isMobile ? 0.5 : -1;
 
   return (
@@ -155,7 +241,9 @@ const TechScene = ({ isMobile }) => {
 };
 
 const SceneReady = ({ onReady }) => {
-  useEffect(() => { onReady(); }, []);
+  useEffect(() => {
+    onReady();
+  }, []);
   return null;
 };
 
